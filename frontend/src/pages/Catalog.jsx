@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
-import { getProducts } from '../data/mockProducts';
 import '../styles/pages/Catalog.css';
 
 const Catalog = ({ onAddToCart }) => {
@@ -14,6 +13,58 @@ const Catalog = ({ onAddToCart }) => {
     sortBy: 'featured'
   });
   const [searchQuery, setSearchQuery] = useState('');
+
+  // ========== ДОБАВЛЯЕМ ФУНКЦИЮ getProducts ==========
+  const getProducts = async () => {
+    // Имитируем задержку API
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return [
+      {
+        id: '1',
+        name: 'Midnight Embrace Box',
+        category: 'Преміальні бокси',
+        shortDescription: 'Преміальний бокс для створення містичної атмосфери',
+        price: 4299,
+        oldPrice: 4999,
+        images: ['https://via.placeholder.com/400x400/2a2a2a/d4af37?text=🌸'],
+        rating: 4.8,
+        reviewsCount: 127,
+        inStock: true,
+        featured: true,
+        badge: { type: 'premium', text: 'Premium' },
+        tags: ['темна естетика', 'розкіш', 'преміум']
+      },
+      {
+        id: '2',
+        name: 'Golden Dreams Premium',
+        category: 'Преміальні бокси',
+        shortDescription: 'Золотий преміум бокс з білими орхідеями',
+        price: 5299,
+        images: ['https://via.placeholder.com/400x400/d4af37/000?text=✨'],
+        rating: 4.9,
+        reviewsCount: 89,
+        inStock: true,
+        featured: true,
+        badge: { type: 'new', text: 'Новинка' },
+        tags: ['золото', 'орхідеї', 'розкіш']
+      },
+      {
+        id: '3',
+        name: 'Spring Symphony',
+        category: 'Сезонні бокси',
+        shortDescription: 'Весняна колекція з тюльпанами',
+        price: 2299,
+        images: ['https://via.placeholder.com/400x400/90EE90/000?text=🌷'],
+        rating: 4.6,
+        reviewsCount: 203,
+        inStock: true,
+        featured: false,
+        badge: { type: 'sale', text: '-20%' },
+        tags: ['весна', 'тюльпани', 'свіжість']
+      }
+    ];
+  };
 
   useEffect(() => {
     loadProducts();
@@ -60,7 +111,7 @@ const Catalog = ({ onAddToCart }) => {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        (product.tags && product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
       );
     }
 

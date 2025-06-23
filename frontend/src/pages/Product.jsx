@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProductById, getProducts } from '../data/mockProducts';
 import ProductCard from '../components/ProductCard';
 import '../styles/pages/Product.css';
 
@@ -17,9 +16,52 @@ const Product = ({ onAddToCart }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  useEffect(() => {
-    loadProduct();
-  }, [id]);
+  // ========== ДОБАВЛЯЕМ ФУНКЦИИ ==========
+  const getProducts = async () => {
+    return [
+      {
+        id: '1',
+        name: 'Midnight Embrace Box',
+        category: 'Преміальні бокси',
+        shortDescription: 'Преміальний бокс для створення містичної атмосфери',
+        price: 4299,
+        oldPrice: 4999,
+        images: ['https://via.placeholder.com/400x400/2a2a2a/d4af37?text=🌸'],
+        rating: 4.8,
+        reviewsCount: 127,
+        inStock: true,
+        featured: true,
+        badge: { type: 'premium', text: 'Premium' }
+      },
+      {
+        id: '2',
+        name: 'Golden Dreams Premium',
+        category: 'Преміальні бокси',
+        shortDescription: 'Золотий преміум бокс з білими орхідеями',
+        price: 5299,
+        images: ['https://via.placeholder.com/400x400/d4af37/000?text=✨'],
+        rating: 4.9,
+        reviewsCount: 89,
+        inStock: true,
+        featured: true,
+        badge: { type: 'new', text: 'Новинка' }
+      }
+    ];
+  };
+
+  const getProductById = async (productId) => {
+    const products = await getProducts();
+    const product = products.find(p => p.id === productId);
+    if (!product) {
+      throw new Error('Товар не найден');
+    }
+    return {
+      ...product,
+      fullDescription: 'Подробное описание товара. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+      sizes: ['Міні', 'Стандарт', 'Преміум'],
+      tags: ['премиум', 'подарок', 'эксклюзив']
+    };
+  };
 
   const loadProduct = async () => {
     try {
@@ -33,13 +75,21 @@ const Product = ({ onAddToCart }) => {
       }
       
       // Загружаем похожие товары
-      loadRelatedProducts(productData.category);
+      const allProducts = await getProducts();
+      const related = allProducts
+        .filter(p => p.id !== id && p.category === productData.category)
+        .slice(0, 4);
+      setRelatedProducts(related);
     } catch (err) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadProduct();
+  }, [id]);
 
   const loadRelatedProducts = async (category) => {
     try {

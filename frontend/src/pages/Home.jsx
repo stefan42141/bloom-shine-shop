@@ -1,50 +1,132 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
-import { getFeaturedProducts } from '../data/mockProducts';
 import '../styles/pages/Home.css';
 
 const Home = ({ onAddToCart }) => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0); // ✅ Добавляем состояние
 
-  useEffect(() => {
-    loadFeaturedProducts();
-  }, []);
-
-  const loadFeaturedProducts = async () => {
-    try {
-      const products = await getFeaturedProducts();
-      setFeaturedProducts(products);
-    } catch (error) {
-      console.error('Помилка завантаження товарів:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // ========== ДОБАВЛЯЕМ ДАННЫЕ ГЕРОЯ ==========
   const heroSlides = [
     {
       id: 1,
-      title: 'Midnight Embrace Box',
-      subtitle: 'Преміальний бокс для створення містичної атмосфери',
-      description: 'Темна естетика зустрічається з розкішшю у цій колекції, створеній для тих, хто цінує глибину і таємничість.',
-      price: '4299 ₴',
-      oldPrice: '4999 ₴',
-      image: '/images/hero-midnight.jpg',
-      cta: 'ПЕРЕГЛЯНУТИ КАТАЛОГ'
+      title: 'Midnight Embrace',
+      subtitle: 'Преміальна колекція',
+      description: 'Темна естетика зустрічається з розкішшю у цій колекції',
+      price: '4 299 ₴',
+      oldPrice: '4 999 ₴',
+      cta: 'ЗАМОВИТИ ЗАРАЗ',
+      image: 'https://via.placeholder.com/800x600/2a2a2a/d4af37?text=🌸+Midnight'
     },
     {
       id: 2,
-      title: 'Golden Dreams Premium',
-      subtitle: 'Золотий преміум бокс з білими орхідеями',
-      description: 'Втілення розкоші та витонченості. Білі орхідеї в поєднанні з золотими деталями створюють атмосферу неземної краси.',
-      price: '5299 ₴',
+      title: 'Golden Dreams',
+      subtitle: 'Золота колекція',
+      description: 'Втілення розкоші та витонченості в кожній деталі',
+      price: '5 299 ₴',
       oldPrice: null,
-      image: '/images/hero-golden.jpg',
-      cta: 'СТВОРИТИ ВЛАСНИЙ НАБІР'
+      cta: 'ВІДКРИТИ МРІЮ',
+      image: 'https://via.placeholder.com/800x600/d4af37/000?text=✨+Golden'
+    },
+    {
+      id: 3,
+      title: 'Spring Symphony',
+      subtitle: 'Весняна колекція',
+      description: 'Свіжість та ніжність весняних квітів у преміальному оформленні',
+      price: '2 999 ₴',
+      oldPrice: '3 499 ₴',
+      cta: 'ЗАМОВИТИ ВЕСНУ',
+      image: 'https://via.placeholder.com/800x600/90EE90/000?text=🌷+Spring'
     }
   ];
+
+  // ========== ФУНКЦІЯ getFeaturedProducts ==========
+  const getFeaturedProducts = async () => {
+    // Имитируем задержку API
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return [
+      {
+        id: '1',
+        name: 'Midnight Embrace Box',
+        category: 'Преміальні бокси',
+        shortDescription: 'Преміальний бокс для створення містичної атмосфери',
+        price: 4299,
+        oldPrice: 4999,
+        images: ['https://via.placeholder.com/400x400/2a2a2a/d4af37?text=🌸'],
+        rating: 4.8,
+        reviewsCount: 127,
+        inStock: true,
+        featured: true,
+        badge: { type: 'premium', text: 'Premium' }
+      },
+      {
+        id: '2',
+        name: 'Golden Dreams Premium',
+        category: 'Преміальні бокси',
+        shortDescription: 'Золотий преміум бокс з білими орхідеями',
+        price: 5299,
+        images: ['https://via.placeholder.com/400x400/d4af37/000?text=✨'],
+        rating: 4.9,
+        reviewsCount: 89,
+        inStock: true,
+        featured: true,
+        badge: { type: 'new', text: 'Новинка' }
+      },
+      {
+        id: '3',
+        name: 'Spring Symphony',
+        category: 'Сезонні бокси',
+        shortDescription: 'Весняна колекція з тюльпанами',
+        price: 2999,
+        oldPrice: 3499,
+        images: ['https://via.placeholder.com/400x400/90EE90/000?text=🌷'],
+        rating: 4.6,
+        reviewsCount: 203,
+        inStock: true,
+        featured: true,
+        badge: { type: 'sale', text: '-15%' }
+      },
+      {
+        id: '4',
+        name: 'Royal Roses',
+        category: 'Класичні бокси',
+        shortDescription: 'Королівські троянди в елегантному боксі',
+        price: 3799,
+        images: ['https://via.placeholder.com/400x400/8B0000/FFD700?text=🌹'],
+        rating: 4.7,
+        reviewsCount: 156,
+        inStock: true,
+        featured: true,
+        badge: { type: 'bestseller', text: 'Хіт продажів' }
+      }
+    ];
+  };
+
+  useEffect(() => {
+    const loadFeaturedProducts = async () => {
+      try {
+        const products = await getFeaturedProducts();
+        setFeaturedProducts(products);
+      } catch (error) {
+        console.error('Помилка завантаження товарів:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadFeaturedProducts();
+  }, []);
+
+  // ========== АВТОМАТИЧЕСКАЯ СМЕНА СЛАЙДОВ ==========
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
+    }, 5000); // Меняем слайд каждые 5 секунд
+
+    return () => clearInterval(interval);
+  }, [heroSlides.length]);
 
   const handleSlideChange = (index) => {
     setCurrentSlide(index);
@@ -194,7 +276,7 @@ const Home = ({ onAddToCart }) => {
           <div className="collections-grid">
             <div className="collection-card large">
               <div className="collection-image">
-                <img src="/images/collection-premium.jpg" alt="Premium Collection" />
+                <img src="https://via.placeholder.com/600x400/d4af37/000?text=Premium" alt="Premium Collection" />
                 <div className="collection-overlay">
                   <div className="collection-content">
                     <h3>Premium Collection</h3>
@@ -207,7 +289,7 @@ const Home = ({ onAddToCart }) => {
             
             <div className="collection-card">
               <div className="collection-image">
-                <img src="/images/collection-seasonal.jpg" alt="Seasonal Collection" />
+                <img src="https://via.placeholder.com/400x300/90EE90/000?text=Seasonal" alt="Seasonal Collection" />
                 <div className="collection-overlay">
                   <div className="collection-content">
                     <h3>Сезонні бокси</h3>
@@ -220,7 +302,7 @@ const Home = ({ onAddToCart }) => {
             
             <div className="collection-card">
               <div className="collection-image">
-                <img src="/images/collection-aromatic.jpg" alt="Aromatic Collection" />
+                <img src="https://via.placeholder.com/400x300/FFB6C1/000?text=Aromatic" alt="Aromatic Collection" />
                 <div className="collection-overlay">
                   <div className="collection-content">
                     <h3>Ароматичні бокси</h3>
