@@ -1,177 +1,117 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { readData, writeData } = require('../config/database');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Имя пользователя обязательно'],
-    trim: true,
-    minlength: [2, 'Имя должно содержать минимум 2 символа'],
-    maxlength: [50, 'Имя не может превышать 50 символов']
-  },
-  email: {
-    type: String,
-    required: [true, 'Email обязателен'],
-    unique: true,
-    lowercase: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      'Введите корректный email'
-    ]
-  },
-  password: {
-    type: String,
-    required: [true, 'Пароль обязателен'],
-    minlength: [6, 'Пароль должен содержать минимум 6 символов'],
-    select: false // По умолчанию не включать в запросы
-  },
-  role: {
-    type: String,
-    enum: {
-      values: ['user', 'admin', 'manager'],
-      message: 'Роль должна быть: user, admin или manager'
-    },
-    default: 'user'
-  },
-  phone: {
-    type: String,
-    trim: true,
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Введите корректный номер телефона']
-  },
-  avatar: {
-    type: String,
-    default: 'https://via.placeholder.com/150x150/8B5CF6/FFFFFF?text=User'
-  },
-  address: {
-    street: {
-      type: String,
-      trim: true
-    },
-    city: {
-      type: String,
-      trim: true
-    },
-    zipCode: {
-      type: String,
-      trim: true
-    },
-    country: {
-      type: String,
-      trim: true,
-      default: 'Россия'
-    }
-  },
-  preferences: {
-    favoriteFlowers: [String],
-    occasionReminders: [{
-      name: String,
-      date: Date,
-      recurring: { type: Boolean, default: false }
-    }],
-    newsletter: {
-      type: Boolean,
-      default: true
-    }
-  },
-  orderHistory: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order'
-  }],
-  wishlist: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product'
-  }],
-  loyaltyPoints: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  lastLogin: {
-    type: Date
-  },
-  emailVerified: {
-    type: Boolean,
-    default: false
-  },
-  resetPasswordToken: String,
-  resetPasswordExpires: Date
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
-
-// Виртуальные поля
-userSchema.virtual('fullAddress').get(function() {
-  if (!this.address.street) return '';
-  return `${this.address.street}, ${this.address.city}, ${this.address.zipCode}, ${this.address.country}`;
-});
-
-userSchema.virtual('orderCount').get(function() {
-  return this.orderHistory ? this.orderHistory.length : 0;
-});
-
-// Индексы
-userSchema.index({ email: 1 });
-userSchema.index({ role: 1 });
-userSchema.index({ createdAt: -1 });
-
-// Middleware перед сохранением
-userSchema.pre('save', async function(next) {
-  // Хеширование пароля только если он изменился
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const saltRounds = 12;
-    this.password = await bcrypt.hash(this.password, saltRounds);
-    next();
-  } catch (error) {
-    next(error);
+class User {
+  constructor(data) {
+    this.id = data.id || this.generateId();
+    this.name = data.name;
+    this.email = data.email?.toLowerCase();
+    this.password = data.password;
+    this.role = data.role || 'user';
+    this.phone = data.phone;
+    this.avatar = data.avatar || 'https://via.placeholder.com/150x150/8B5CF6/FFFFFF?text=User';
+    this.address = data.address || {};
+    this.preferences = data.preferences || { newsletter: true };
+    this.orderHistory = data.orderHistory || [];
+    this.wishlist = data.wishlist || [];
+    this.loyaltyPoints = data.loyaltyPoints || 0;
+    this.isActive = data.isActive !== false;
+    this.lastLogin = data.lastLogin;
+    this.emailVerified = data.emailVerified || false;
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.updatedAt = new Date().toISOString();
   }
-});
 
-// Обновление lastLogin при каждом запросе профиля
-userSchema.pre(/^find/, function(next) {
-  this.populate({
-    path: 'wishlist',
-    select: 'name price images category'
-  });
-  next();
-});
+  generateId() {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
 
-// Методы схемы
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
+  async hashPassword() {
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
+  }
+
+  async comparePassword(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw new Error('Ошибка при проверке пароля');
   }
-};
 
-userSchema.methods.addToWishlist = function(productId) {
-  if (!this.wishlist.includes(productId)) {
-    this.wishlist.push(productId);
+  // Статические методы для работы с JSON
+  static async create(userData) {
+    const user = new User(userData);
+    await user.hashPassword();
+    
+    const users = readData('users');
+    
+    // Проверка уникальности email
+    if (users.find(u => u.email === user.email)) {
+      throw new Error('Пользователь с таким email уже существует');
+    }
+    
+    users.push(user);
+    writeData('users', users);
+    
+    // Удаляем пароль из ответа
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
-  return this.save();
-};
 
-userSchema.methods.removeFromWishlist = function(productId) {
-  this.wishlist = this.wishlist.filter(id => !id.equals(productId));
-  return this.save();
-};
+  static findOne(query) {
+    const users = readData('users');
+    return users.find(user => {
+      return Object.keys(query).every(key => user[key] === query[key]);
+    });
+  }
 
-userSchema.methods.addLoyaltyPoints = function(points) {
-  this.loyaltyPoints += points;
-  return this.save();
-};
+  static findById(id) {
+    const users = readData('users');
+    return users.find(user => user.id === id);
+  }
 
-userSchema.methods.updateLastLogin = function() {
-  this.lastLogin = new Date();
-  return this.save({ validateBeforeSave: false });
-};
+  static findByIdAndUpdate(id, updates) {
+    const users = readData('users');
+    const userIndex = users.findIndex(user => user.id === id);
+    
+    if (userIndex === -1) return null;
+    
+    users[userIndex] = { ...users[userIndex], ...updates, updatedAt: new Date().toISOString() };
+    writeData('users', users);
+    
+    return users[userIndex];
+  }
 
-module.exports = mongoose.model('User', userSchema);
+  addToWishlist(productId) {
+    if (!this.wishlist.includes(productId)) {
+      this.wishlist.push(productId);
+      this.save();
+    }
+  }
+
+  removeFromWishlist(productId) {
+    this.wishlist = this.wishlist.filter(id => id !== productId);
+    this.save();
+  }
+
+  save() {
+    const users = readData('users');
+    const userIndex = users.findIndex(user => user.id === this.id);
+    
+    this.updatedAt = new Date().toISOString();
+    
+    if (userIndex === -1) {
+      users.push(this);
+    } else {
+      users[userIndex] = this;
+    }
+    
+    writeData('users', users);
+    return this;
+  }
+
+  updateLastLogin() {
+    this.lastLogin = new Date().toISOString();
+    return this.save();
+  }
+}
+
+module.exports = User;
