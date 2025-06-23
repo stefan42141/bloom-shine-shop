@@ -1,19 +1,28 @@
 const express = require('express');
-const { register, login, getProfile, updateProfile } = require('../controllers/auth');
+const {
+  register,
+  login,
+  logout,
+  getProfile,
+  updateProfile,
+  changePassword,
+  toggleWishlist
+} = require('../controllers/auth');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Регистрация
+// Публичные маршруты
 router.post('/register', register);
-
-// Авторизация
 router.post('/login', login);
+router.post('/logout', logout);
 
-// Получение профиля (требует аутентификации)
+// Приватные маршруты (требуют аутентификации)
 router.get('/profile', authenticate, getProfile);
-
-// Обновление профиля (требует аутентификации)
 router.put('/profile', authenticate, updateProfile);
+router.put('/change-password', authenticate, changePassword);
+
+// Управление списком желаний
+router.post('/wishlist/:productId', authenticate, toggleWishlist);
 
 module.exports = router;
