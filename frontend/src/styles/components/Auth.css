@@ -1,0 +1,645 @@
+.auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: var(--z-modal-backdrop);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.auth-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 450px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-large), var(--shadow-glow);
+  transform: scale(0.9) translateY(20px);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-overlay.active .auth-modal {
+  transform: scale(1) translateY(0);
+}
+
+.auth-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-gold);
+}
+
+/* === ЗАГОЛОВОК === */
+.auth-header {
+  padding: var(--space-2xl) var(--space-2xl) var(--space-lg);
+  text-align: center;
+  position: relative;
+}
+
+.auth-close {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-xl);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-close:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.auth-logo {
+  width: 60px;
+  height: 60px;
+  background: var(--gradient-gold);
+  border-radius: var(--radius-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-2xl);
+  color: var(--text-dark);
+  margin: 0 auto var(--space-lg);
+  position: relative;
+}
+
+.auth-logo::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--radius-2xl);
+  background: var(--shimmer-gold);
+  opacity: 0;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.auth-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.auth-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* === КОНТЕНТ === */
+.auth-content {
+  padding: 0 var(--space-2xl) var(--space-2xl);
+}
+
+/* === ТАБЫ === */
+.auth-tabs {
+  display: flex;
+  margin-bottom: var(--space-xl);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xs);
+  position: relative;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: var(--space-md);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  transition: var(--transition-normal);
+  position: relative;
+  z-index: 2;
+}
+
+.auth-tab.active {
+  color: var(--text-dark);
+  background: var(--gradient-gold);
+  box-shadow: var(--shadow-small);
+}
+
+.auth-tab:hover:not(.active) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* === ФОРМЫ === */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form-row {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-label {
+  font-size: var(--font-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.form-label.required::after {
+  content: '*';
+  color: #ef4444;
+  margin-left: var(--space-xs);
+}
+
+.form-input {
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-base);
+  transition: var(--transition-normal);
+  width: 100%;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  background: var(--bg-primary);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: var(--font-xs);
+  margin-top: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* === ПОЛЕ ПАРОЛЯ === */
+.password-field {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--font-lg);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  padding: var(--space-xs);
+}
+
+.password-toggle:hover {
+  color: var(--text-primary);
+}
+
+/* === ЧЕКБОКС === */
+.form-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  cursor: pointer;
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.checkbox-input:checked {
+  background: var(--gradient-gold);
+  border-color: var(--accent-gold);
+}
+
+.checkbox-input:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-dark);
+  font-size: var(--font-xs);
+  font-weight: var(--font-bold);
+}
+
+.checkbox-label {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+}
+
+.checkbox-label a {
+  color: var(--text-accent);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.checkbox-label a:hover {
+  text-decoration: underline;
+}
+
+/* === КНОПКИ === */
+.auth-button {
+  padding: var(--space-lg);
+  background: var(--gradient-gold);
+  color: var(--text-dark);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-base);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  margin-top: var(--space-md);
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-button.loading {
+  color: transparent;
+}
+
+.auth-button.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(26, 26, 26, 0.3);
+  border-top-color: var(--text-dark);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+}
+
+/* === РАЗДЕЛИТЕЛЬ === */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-xl) 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-secondary);
+}
+
+.auth-divider-text {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  padding: 0 var(--space-sm);
+}
+
+/* === СОЦИАЛЬНЫЕ СЕТИ === */
+.social-auth {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  text-decoration: none;
+}
+
+.social-button:hover {
+  border-color: var(--border-primary);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.social-button.google:hover {
+  border-color: #db4437;
+  background: rgba(219, 68, 55, 0.1);
+}
+
+.social-button.facebook:hover {
+  border-color: #3b5998;
+  background: rgba(59, 89, 152, 0.1);
+}
+
+.social-icon {
+  font-size: var(--font-lg);
+}
+
+/* === ФУТЕР === */
+.auth-footer {
+  text-align: center;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-muted);
+}
+
+.auth-switch {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.auth-switch-link {
+  color: var(--text-accent);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+  margin-left: var(--space-xs);
+  transition: var(--transition-fast);
+}
+
+.auth-switch-link:hover {
+  text-decoration: underline;
+  color: var(--accent-rose);
+}
+
+/* === ЗАБЫЛИ ПАРОЛЬ === */
+.forgot-password {
+  text-align: center;
+  margin-top: var(--space-lg);
+}
+
+.forgot-password-link {
+  color: var(--text-accent);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  transition: var(--transition-fast);
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
+/* === УСПЕШНАЯ РЕГИСТРАЦИЯ === */
+.auth-success {
+  text-align: center;
+  padding: var(--space-2xl);
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--gradient-gold);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-3xl);
+  color: var(--text-dark);
+  margin: 0 auto var(--space-lg);
+  animation: pulse 2s infinite;
+}
+
+.success-title {
+  font-size: var(--font-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.success-message {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-xl);
+}
+
+/* === РЕСПОНСИВНОСТЬ === */
+
+/* Планшеты */
+@media (max-width: 768px) {
+  .auth-overlay {
+    padding: var(--space-md);
+  }
+  
+  .auth-modal {
+    max-width: 100%;
+  }
+  
+  .auth-header {
+    padding: var(--space-xl) var(--space-lg) var(--space-md);
+  }
+  
+  .auth-content {
+    padding: 0 var(--space-lg) var(--space-xl);
+  }
+  
+  .auth-title {
+    font-size: var(--font-xl);
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+}
+
+/* Мобильные устройства */
+@media (max-width: 480px) {
+  .auth-overlay {
+    padding: var(--space-sm);
+  }
+  
+  .auth-header {
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+  }
+  
+  .auth-content {
+    padding: 0 var(--space-md) var(--space-lg);
+  }
+  
+  .auth-logo {
+    width: 50px;
+    height: 50px;
+    font-size: var(--font-xl);
+  }
+  
+  .auth-title {
+    font-size: var(--font-lg);
+  }
+  
+  .auth-subtitle {
+    font-size: var(--font-sm);
+  }
+  
+  .auth-tabs {
+    margin-bottom: var(--space-lg);
+  }
+  
+  .auth-tab {
+    padding: var(--space-sm);
+    font-size: var(--font-sm);
+  }
+  
+  .form-input {
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .auth-button {
+    padding: var(--space-md);
+  }
+}
+
+/* === АНИМАЦИИ === */
+.auth-modal {
+  animation: modalAppear 0.4s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.auth-form {
+  animation: slideUp 0.5s ease-out;
+}
+
+.form-group {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(3) { animation-delay: 0.3s; }
+.form-group:nth-child(4) { animation-delay: 0.4s; }
+
+/* === ПРЕМИАЛЬНЫЕ ЭФФЕКТЫ === */
+.auth-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: var(--transition-slow);
+}
+
+.auth-button:hover::before {
+  left: 100%;
+}
+
+/* Золотое свечение для активных элементов */
+.form-input:focus {
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2), var(--neon-gold);
+}
+
+.auth-tab.active {
+  box-shadow: var(--shadow-small), 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Эффект печатания для плейсхолдеров */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.form-input:focus::placeholder {
+  animation: typing 2s steps(40, end);
+}

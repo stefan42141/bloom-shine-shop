@@ -1,0 +1,192 @@
+:root {
+  /* === ПРЕМИАЛЬНАЯ ЦВЕТОВАЯ ПАЛИТРА === */
+  
+  /* Основные цвета */
+  --primary-color: #1a1a1a;           /* Глубокий черный */
+  --primary-light: #2d2d2d;           /* Темно-серый */
+  --primary-dark: #0f0f0f;            /* Почти черный */
+  
+  /* Акцентные цвета */
+  --accent-gold: #d4af37;             /* Премиальное золото */
+  --accent-rose: #c9a96e;             /* Розовое золото */
+  --accent-silver: #b5b5b5;           /* Серебро */
+  --accent-premium: #8b4513;          /* Коричневое золото */
+  
+  /* Градиенты */
+  --gradient-gold: linear-gradient(135deg, #d4af37, #c9a96e);
+  --gradient-dark: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  --gradient-premium: linear-gradient(135deg, #8b4513, #d4af37);
+  --gradient-overlay: linear-gradient(rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.9));
+  
+  /* Текстовые цвета */
+  --text-primary: #ffffff;            /* Основной белый текст */
+  --text-secondary: #cccccc;          /* Вторичный серый текст */
+  --text-muted: #999999;              /* Приглушенный текст */
+  --text-accent: #d4af37;             /* Акцентный золотой текст */
+  --text-dark: #1a1a1a;               /* Темный текст */
+  
+  /* Фоновые цвета */
+  --bg-primary: #0f0f0f;              /* Основной фон */
+  --bg-secondary: #1a1a1a;            /* Вторичный фон */
+  --bg-card: #2d2d2d;                 /* Фон карточек */
+  --bg-overlay: rgba(26, 26, 26, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.1);
+  
+  /* Границы */
+  --border-primary: rgba(212, 175, 55, 0.3);
+  --border-secondary: rgba(255, 255, 255, 0.1);
+  --border-muted: rgba(255, 255, 255, 0.05);
+  
+  /* Тени */
+  --shadow-small: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-large: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --shadow-premium: 0 12px 24px rgba(212, 175, 55, 0.2);
+  --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.3);
+  
+  /* === ТИПОГРАФИЯ === */
+  
+  /* Основные шрифты */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Playfair Display', 'Times New Roman', serif;
+  --font-accent: 'Montserrat', 'Arial', sans-serif;
+  
+  /* Размеры шрифтов */
+  --font-xs: 0.75rem;     /* 12px */
+  --font-sm: 0.875rem;    /* 14px */
+  --font-base: 1rem;      /* 16px */
+  --font-lg: 1.125rem;    /* 18px */
+  --font-xl: 1.25rem;     /* 20px */
+  --font-2xl: 1.5rem;     /* 24px */
+  --font-3xl: 1.875rem;   /* 30px */
+  --font-4xl: 2.25rem;    /* 36px */
+  --font-5xl: 3rem;       /* 48px */
+  --font-6xl: 3.75rem;    /* 60px */
+  
+  /* Веса шрифтов */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  
+  /* Высота строк */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* === SPACING === */
+  
+  --space-xs: 0.25rem;    /* 4px */
+  --space-sm: 0.5rem;     /* 8px */
+  --space-md: 1rem;       /* 16px */
+  --space-lg: 1.5rem;     /* 24px */
+  --space-xl: 2rem;       /* 32px */
+  --space-2xl: 2.5rem;    /* 40px */
+  --space-3xl: 3rem;      /* 48px */
+  --space-4xl: 4rem;      /* 64px */
+  --space-5xl: 5rem;      /* 80px */
+  --space-6xl: 6rem;      /* 96px */
+  
+  /* === РАДИУСЫ === */
+  
+  --radius-none: 0;
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px */
+  --radius-xl: 0.75rem;   /* 12px */
+  --radius-2xl: 1rem;     /* 16px */
+  --radius-3xl: 1.5rem;   /* 24px */
+  --radius-full: 9999px;
+  
+  /* === АНИМАЦИИ === */
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* === КОНТЕЙНЕРЫ === */
+  
+  --container-xs: 420px;
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  
+  /* === Z-INDEX === */
+  
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  
+  /* === СОСТОЯНИЯ === */
+  
+  /* Success */
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --success-border: rgba(34, 197, 94, 0.3);
+  --success-text: #22c55e;
+  
+  /* Warning */
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --warning-border: rgba(245, 158, 11, 0.3);
+  --warning-text: #f59e0b;
+  
+  /* Error */
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-border: rgba(239, 68, 68, 0.3);
+  --error-text: #ef4444;
+  
+  /* Info */
+  --info-bg: rgba(59, 130, 246, 0.1);
+  --info-border: rgba(59, 130, 246, 0.3);
+  --info-text: #3b82f6;
+  
+  /* === ПРЕМИАЛЬНЫЕ ЭФФЕКТЫ === */
+  
+  /* Золотые блики */
+  --shimmer-gold: linear-gradient(
+    90deg,
+    transparent,
+    rgba(212, 175, 55, 0.4),
+    transparent
+  );
+  
+  /* Стеклянный эффект */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  
+  /* Неоновое свечение */
+  --neon-gold: 0 0 5px #d4af37, 0 0 10px #d4af37, 0 0 15px #d4af37;
+  --neon-white: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 15px #ffffff;
+}
+
+/* === ТЕМНАЯ ТЕМА (по умолчанию) === */
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #999999;
+}
+
+/* === СВЕТЛАЯ ТЕМА (опциональная) === */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --border-primary: rgba(26, 26, 26, 0.1);
+  --border-secondary: rgba(26, 26, 26, 0.05);
+}
