@@ -1,0 +1,543 @@
+.footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
+  margin-top: var(--space-6xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gradient-gold);
+  opacity: 0.8;
+}
+
+.footer-container {
+  max-width: var(--container-2xl);
+  margin: 0 auto;
+  padding: var(--space-5xl) var(--space-lg) var(--space-xl);
+}
+
+/* === ОСНОВНОЙ КОНТЕНТ === */
+.footer-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+  gap: var(--space-4xl);
+  margin-bottom: var(--space-4xl);
+}
+
+/* Секция о компании */
+.footer-about {
+  max-width: 400px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  text-decoration: none;
+}
+
+.footer-logo-icon {
+  font-size: var(--font-2xl);
+  margin-right: var(--space-sm);
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.footer-logo-text {
+  font-family: var(--font-heading);
+  font-size: var(--font-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.footer-description {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-base);
+}
+
+.footer-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-feature {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+.footer-feature-icon {
+  margin-right: var(--space-sm);
+  color: var(--accent-gold);
+  font-size: var(--font-base);
+}
+
+/* Навигационные секции */
+.footer-section h3 {
+  font-family: var(--font-accent);
+  font-size: var(--font-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  position: relative;
+}
+
+.footer-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: var(--gradient-gold);
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-link {
+  margin-bottom: var(--space-sm);
+}
+
+.footer-link a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  transition: var(--transition-normal);
+  display: inline-block;
+  position: relative;
+}
+
+.footer-link a:hover {
+  color: var(--text-accent);
+  transform: translateX(4px);
+}
+
+.footer-link a::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 1px;
+  background: var(--accent-gold);
+  transition: var(--transition-normal);
+}
+
+.footer-link a:hover::before {
+  width: 8px;
+}
+
+/* Контактная информация */
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+.contact-icon {
+  margin-right: var(--space-sm);
+  margin-top: 2px;
+  color: var(--accent-gold);
+  font-size: var(--font-base);
+  flex-shrink: 0;
+}
+
+.contact-text {
+  line-height: var(--line-height-normal);
+}
+
+.contact-text a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--transition-normal);
+}
+
+.contact-text a:hover {
+  color: var(--text-accent);
+}
+
+/* === ПОДПИСКА НА РАССЫЛКУ === */
+.footer-newsletter {
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.newsletter-content h3 {
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.newsletter-description {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+.newsletter-form {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.newsletter-input {
+  flex: 1;
+  padding: var(--space-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  transition: var(--transition-normal);
+}
+
+.newsletter-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.newsletter-input::placeholder {
+  color: var(--text-muted);
+}
+
+.newsletter-button {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--gradient-gold);
+  color: var(--text-dark);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  white-space: nowrap;
+}
+
+.newsletter-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.newsletter-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.newsletter-benefit {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--font-xs);
+}
+
+.newsletter-benefit::before {
+  content: '✓';
+  margin-right: var(--space-xs);
+  color: var(--accent-gold);
+  font-weight: var(--font-bold);
+}
+
+/* === СОЦИАЛЬНЫЕ СЕТИ === */
+.footer-social {
+  margin-top: var(--space-lg);
+}
+
+.social-links {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-start;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-lg);
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-link:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.social-link:nth-child(1):hover {
+  background: rgba(59, 89, 152, 0.2);
+}
+
+.social-link:nth-child(2):hover {
+  background: rgba(225, 48, 108, 0.2);
+}
+
+.social-link:nth-child(3):hover {
+  background: rgba(29, 161, 242, 0.2);
+}
+
+.social-link:nth-child(4):hover {
+  background: rgba(37, 211, 102, 0.2);
+}
+
+/* === НИЖНЯЯ ЧАСТЬ === */
+.footer-bottom {
+  border-top: 1px solid var(--border-muted);
+  padding-top: var(--space-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.footer-copyright {
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.footer-copyright-icon {
+  color: var(--accent-gold);
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: var(--space-xl);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-bottom-link a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  transition: var(--transition-normal);
+}
+
+.footer-bottom-link a:hover {
+  color: var(--text-accent);
+}
+
+.footer-badges {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+.security-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-muted);
+  font-size: var(--font-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-muted);
+}
+
+.security-badge-icon {
+  color: var(--accent-gold);
+}
+
+/* === РЕСПОНСИВНОСТЬ === */
+
+/* Планшеты */
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-3xl);
+  }
+  
+  .footer-about {
+    grid-column: 1 / -1;
+    max-width: none;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .footer-newsletter {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Мобильные устройства */
+@media (max-width: 768px) {
+  .footer-container {
+    padding: var(--space-4xl) var(--space-md) var(--space-xl);
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+  
+  .footer-section h3 {
+    font-size: var(--font-base);
+    margin-bottom: var(--space-md);
+  }
+  
+  .newsletter-form {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .newsletter-button {
+    padding: var(--space-md);
+  }
+  
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-lg);
+  }
+  
+  .footer-bottom-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-md);
+  }
+  
+  .footer-badges {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 480px) {
+  .footer-container {
+    padding: var(--space-3xl) var(--space-sm) var(--space-lg);
+  }
+  
+  .footer-logo {
+    justify-content: center;
+  }
+  
+  .footer-description,
+  .footer-features {
+    text-align: center;
+  }
+  
+  .social-links {
+    justify-content: center;
+  }
+  
+  .contact-item {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-xs);
+  }
+  
+  .contact-icon {
+    margin: 0;
+  }
+}
+
+/* === АНИМАЦИИ === */
+.footer {
+  animation: fadeIn 0.8s ease-out;
+}
+
+.footer-section {
+  animation: slideUp 0.6s ease-out;
+}
+
+.footer-section:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.footer-section:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.footer-section:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.footer-section:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+/* === ПРЕМИАЛЬНЫЕ ЭФФЕКТЫ === */
+.footer-newsletter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--shimmer-gold);
+  opacity: 0.1;
+  transition: var(--transition-slow);
+}
+
+.footer-newsletter:hover::before {
+  left: 100%;
+}
+
+/* Золотое свечение для важных элементов */
+.footer-logo:hover .footer-logo-icon {
+  text-shadow: var(--neon-gold);
+}
+
+.newsletter-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.newsletter-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: var(--transition-slow);
+}
+
+.newsletter-button:hover::before {
+  left: 100%;
+}
