@@ -7,11 +7,21 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
     
-    console.log(`MongoDB подключена: ${conn.connection.host}`);
+    console.log(`🌸 MongoDB подключена: ${conn.connection.host}`);
+    console.log(`📊 База данных: ${conn.connection.name}`);
   } catch (error) {
-    console.error('Ошибка подключения к базе данных:', error.message);
+    console.error('❌ Ошибка подключения к базе данных:', error.message);
     process.exit(1);
   }
 };
+
+// Обработка событий подключения
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB отключена');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ Ошибка MongoDB:', err);
+});
 
 module.exports = connectDB;

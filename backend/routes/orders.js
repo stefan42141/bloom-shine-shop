@@ -5,7 +5,8 @@ const {
   getOrderById,
   updateOrderStatus,
   getAllOrders,
-  cancelOrder
+  cancelOrder,
+  addOrderFeedback
 } = require('../controllers/orders');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
@@ -16,8 +17,9 @@ router.post('/', authenticate, createOrder);
 router.get('/my-orders', authenticate, getUserOrders);
 router.get('/:id', authenticate, getOrderById);
 router.patch('/:id/cancel', authenticate, cancelOrder);
+router.post('/:id/feedback', authenticate, addOrderFeedback);
 
-// Административные маршруты
+// Административные маршруты (только для админов)
 router.get('/', authenticate, requireAdmin, getAllOrders);
 router.patch('/:id/status', authenticate, requireAdmin, updateOrderStatus);
 
