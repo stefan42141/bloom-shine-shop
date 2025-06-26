@@ -14,7 +14,7 @@ class User {
     this.preferences = data.preferences || { newsletter: true };
     this.orderHistory = data.orderHistory || [];
     this.wishlist = data.wishlist || [];
-    this.loyaltyPoints = data.loyaltyPoints || 0;
+    this.loyaltyPoints = data.loyaltyPoints || 0; 
     this.isActive = data.isActive !== false;
     this.lastLogin = data.lastLogin;
     this.emailVerified = data.emailVerified || false;

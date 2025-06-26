@@ -4,139 +4,178 @@ import '../styles/pages/Catalog.css';
 
 const Catalog = ({ onAddToCart }) => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     category: 'all',
-    priceRange: [0, 10000],
-    inStock: false,
+    priceRange: 'all',
     sortBy: 'featured'
   });
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ========== ДОБАВЛЯЕМ ФУНКЦИЮ getProducts ==========
-  const getProducts = async () => {
-    // Имитируем задержку API
-    await new Promise(resolve => setTimeout(resolve, 500));
+  // Премиальные категории
+  const categories = [
+    { id: 'all', name: 'Всі колекції', icon: '🌟' },
+    { id: 'premium', name: 'Преміум', icon: '👑' },
+    { id: 'luxury', name: 'Люкс', icon: '💎' },
+    { id: 'seasonal', name: 'Сезонні', icon: '🌸' },
+    { id: 'custom', name: 'На замовлення', icon: '🎨' }
+  ];
+
+  const priceRanges = [
+    { id: 'all', name: 'Всі ціни', min: 0, max: Infinity },
+    { id: 'budget', name: 'До 2000 ₴', min: 0, max: 2000 },
+    { id: 'medium', name: '2000 - 5000 ₴', min: 2000, max: 5000 },
+    { id: 'premium', name: '5000 - 10000 ₴', min: 5000, max: 10000 },
+    { id: 'luxury', name: 'Від 10000 ₴', min: 10000, max: Infinity }
+  ];
+
+  const sortOptions = [
+    { id: 'featured', name: 'Рекомендовані' },
+    { id: 'price-asc', name: 'Ціна: за зростанням' },
+    { id: 'price-desc', name: 'Ціна: за спаданням' },
+    { id: 'name', name: 'За назвою' },
+    { id: 'rating', name: 'За рейтингом' }
+  ];
+
+  // Мок данные товаров
+  const getAllProducts = async () => {
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     return [
       {
         id: '1',
-        name: 'Midnight Embrace Box',
-        category: 'Преміальні бокси',
+        name: 'Midnight Embrace Luxury Box',
+        category: 'premium',
         shortDescription: 'Преміальний бокс для створення містичної атмосфери',
         price: 4299,
         oldPrice: 4999,
         images: ['https://via.placeholder.com/400x400/2a2a2a/d4af37?text=🌸'],
-        rating: 4.8,
+        rating: 4.9,
         reviewsCount: 127,
         inStock: true,
-        featured: true,
-        badge: { type: 'premium', text: 'Premium' },
-        tags: ['темна естетика', 'розкіш', 'преміум']
+        badge: { type: 'premium', text: 'Limited Edition' },
+        luxury: true
       },
       {
         id: '2',
-        name: 'Golden Dreams Premium',
-        category: 'Преміальні бокси',
+        name: 'Golden Dreams Couture',
+        category: 'luxury',
         shortDescription: 'Золотий преміум бокс з білими орхідеями',
         price: 5299,
         images: ['https://via.placeholder.com/400x400/d4af37/000?text=✨'],
-        rating: 4.9,
+        rating: 5.0,
         reviewsCount: 89,
         inStock: true,
-        featured: true,
-        badge: { type: 'new', text: 'Новинка' },
-        tags: ['золото', 'орхідеї', 'розкіш']
+        badge: { type: 'exclusive', text: 'Haute Couture' },
+        luxury: true
       },
       {
         id: '3',
-        name: 'Spring Symphony',
-        category: 'Сезонні бокси',
-        shortDescription: 'Весняна колекція з тюльпанами',
-        price: 2299,
+        name: 'Spring Symphony Deluxe',
+        category: 'seasonal',
+        shortDescription: 'Весняна колекція з рідкісними тюльпанами',
+        price: 2999,
+        oldPrice: 3499,
         images: ['https://via.placeholder.com/400x400/90EE90/000?text=🌷'],
-        rating: 4.6,
+        rating: 4.8,
         reviewsCount: 203,
         inStock: true,
-        featured: false,
-        badge: { type: 'sale', text: '-20%' },
-        tags: ['весна', 'тюльпани', 'свіжість']
+        badge: { type: 'seasonal', text: 'Seasonal Drop' },
+        luxury: false
+      },
+      {
+        id: '4',
+        name: 'Royal Roses Platinum',
+        category: 'luxury',
+        shortDescription: 'Королівські троянди в платиновому боксі',
+        price: 6799,
+        images: ['https://via.placeholder.com/400x400/8B0000/FFD700?text=🌹'],
+        rating: 4.9,
+        reviewsCount: 156,
+        inStock: true,
+        badge: { type: 'platinum', text: 'Platinum Series' },
+        luxury: true
+      },
+      {
+        id: '5',
+        name: 'Crystal Garden Premium',
+        category: 'premium',
+        shortDescription: 'Кришталевий сад з рідкісними квітами',
+        price: 3799,
+        images: ['https://via.placeholder.com/400x400/E6E6FA/000?text=💎'],
+        rating: 4.7,
+        reviewsCount: 94,
+        inStock: true,
+        badge: { type: 'new', text: 'New Arrival' },
+        luxury: false
+      },
+      {
+        id: '6',
+        name: 'Velvet Dreams Collection',
+        category: 'custom',
+        shortDescription: 'Оксамитова колекція на індивідуальне замовлення',
+        price: 8499,
+        images: ['https://via.placeholder.com/400x400/800080/FFD700?text=🌺'],
+        rating: 4.9,
+        reviewsCount: 67,
+        inStock: true,
+        badge: { type: 'custom', text: 'Made to Order' },
+        luxury: true
       }
     ];
   };
 
   useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const allProducts = await getAllProducts();
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('Помилка завантаження товарів:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     loadProducts();
   }, []);
 
-  useEffect(() => {
-    applyFilters();
-  }, [products, filters, searchQuery]);
-
-  const loadProducts = async () => {
-    try {
-      const data = await getProducts();
-      setProducts(data);
-    } catch (error) {
-      console.error('Помилка завантаження товарів:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...products];
-
-    // Фільтр за категорією
-    if (filters.category !== 'all') {
-      filtered = filtered.filter(product => 
-        product.category.toLowerCase().includes(filters.category.toLowerCase())
-      );
+  // Фильтрация товаров
+  const filteredProducts = products.filter(product => {
+    // Фильтр по категории
+    if (filters.category !== 'all' && product.category !== filters.category) {
+      return false;
     }
 
-    // Фільтр за ціною
-    filtered = filtered.filter(product => 
-      product.price >= filters.priceRange[0] && 
-      product.price <= filters.priceRange[1]
-    );
-
-    // Фільтр за наявністю
-    if (filters.inStock) {
-      filtered = filtered.filter(product => product.inStock);
+    // Фильтр по цене
+    const priceRange = priceRanges.find(range => range.id === filters.priceRange);
+    if (priceRange && (product.price < priceRange.min || product.price > priceRange.max)) {
+      return false;
     }
 
-    // Пошук
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.tags && product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
-      );
+    // Поиск
+    if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
     }
 
-    // Сортування
+    return true;
+  });
+
+  // Сортировка товаров
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (filters.sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
       case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
+        return a.name.localeCompare(b.name);
       case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'featured':
+        return b.rating - a.rating;
       default:
-        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-        break;
+        return 0;
     }
-
-    setFilteredProducts(filtered);
-  };
+  });
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({
@@ -145,181 +184,196 @@ const Catalog = ({ onAddToCart }) => {
     }));
   };
 
-  const handlePriceRangeChange = (range) => {
-    setFilters(prev => ({
-      ...prev,
-      priceRange: range
-    }));
-  };
-
   const clearFilters = () => {
     setFilters({
       category: 'all',
-      priceRange: [0, 10000],
-      inStock: false,
+      priceRange: 'all',
       sortBy: 'featured'
     });
     setSearchQuery('');
   };
 
-  const handleQuickView = (product) => {
-    // TODO: Відкрити модалку швидкого перегляду
-    console.log('Швидкий перегляд:', product);
-  };
-
-  const categories = [
-    { value: 'all', label: 'Всі категорії' },
-    { value: 'преміальні', label: 'Преміальні бокси' },
-    { value: 'ароматичні', label: 'Ароматичні бокси' },
-    { value: 'сезонні', label: 'Сезонні бокси' }
-  ];
-
-  const sortOptions = [
-    { value: 'featured', label: 'Рекомендовані' },
-    { value: 'price-low', label: 'Ціна: від дешевих' },
-    { value: 'price-high', label: 'Ціна: від дорогих' },
-    { value: 'name', label: 'За назвою' },
-    { value: 'rating', label: 'За рейтингом' }
-  ];
-
   return (
     <div className="catalog-page">
-      <div className="container">
-        {/* Header */}
-        <div className="catalog-header">
-          <h1 className="page-title">🌸 Каталог преміальних боксів</h1>
-          <p className="page-subtitle">
-            Оберіть ідеальний квітковий бокс для створення незабутніх моментів
-          </p>
+      {/* Премиальный хедер каталога */}
+      <section className="catalog-hero">
+        <div className="floating-elements">
+          <div className="floating-flower">🌸</div>
+          <div className="floating-star">✨</div>
+          <div className="floating-diamond">💎</div>
         </div>
-
-        {/* Search and Filters */}
-        <div className="catalog-controls">
-          <div className="search-section">
-            <div className="search-input-wrapper">
-              <input
-                type="text"
-                placeholder="Пошук боксів..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-              <span className="search-icon">🔍</span>
+        
+        <div className="container">
+          <div className="catalog-hero-content">
+            <div className="luxury-badge">
+              <span className="badge-icon">👑</span>
+              EXCLUSIVE COLLECTIONS
+            </div>
+            <h1 className="catalog-title">Каталог преміальних квітів</h1>
+            <p className="catalog-subtitle">
+              Відкрийте світ розкоші та витонченості у нашій ексклюзивній колекції
+            </p>
+            
+            {/* Премиальная статистика */}
+            <div className="catalog-stats">
+              <div className="stat-item">
+                <span className="stat-number">{products.length}+</span>
+                <span className="stat-label">Ексклюзивних товарів</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">4.9</span>
+                <span className="stat-label">Середній рейтинг</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">24/7</span>
+                <span className="stat-label">Преміум підтримка</span>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="filters-section">
-            {/* Category Filter */}
-            <div className="filter-group">
-              <label>Категорія:</label>
-              <select
-                value={filters.category}
-                onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="filter-select"
-              >
-                {categories.map(category => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Price Filter */}
-            <div className="filter-group">
-              <label>Ціна:</label>
-              <div className="price-range">
+      {/* Фильтры и поиск */}
+      <section className="catalog-filters">
+        <div className="container">
+          <div className="filters-container">
+            {/* Поиск */}
+            <div className="search-section">
+              <div className="luxury-search">
+                <span className="search-icon">🔍</span>
                 <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  value={filters.priceRange[1]}
-                  onChange={(e) => handlePriceRangeChange([0, parseInt(e.target.value)])}
-                  className="price-slider"
+                  type="text"
+                  placeholder="Пошук преміальних квітів..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
                 />
-                <span className="price-display">до {filters.priceRange[1]} ₴</span>
+                <button className="search-btn luxury-button">
+                  Знайти
+                </button>
               </div>
             </div>
 
-            {/* In Stock Filter */}
-            <div className="filter-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={filters.inStock}
-                  onChange={(e) => handleFilterChange('inStock', e.target.checked)}
-                />
-                Тільки в наявності
-              </label>
-            </div>
+            {/* Фильтры */}
+            <div className="filters-section">
+              {/* Категории */}
+              <div className="filter-group">
+                <h3 className="filter-title">
+                  <span className="filter-icon">🎯</span>
+                  Категорії
+                </h3>
+                <div className="filter-options category-filters">
+                  {categories.map(category => (
+                    <button
+                      key={category.id}
+                      className={`filter-btn ${filters.category === category.id ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('category', category.id)}
+                    >
+                      <span className="filter-emoji">{category.icon}</span>
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            {/* Sort */}
-            <div className="filter-group">
-              <label>Сортування:</label>
-              <select
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                className="filter-select"
-              >
-                {sortOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Ценовые диапазоны */}
+              <div className="filter-group">
+                <h3 className="filter-title">
+                  <span className="filter-icon">💰</span>
+                  Ціновий діапазон
+                </h3>
+                <div className="filter-options price-filters">
+                  {priceRanges.map(range => (
+                    <button
+                      key={range.id}
+                      className={`filter-btn ${filters.priceRange === range.id ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('priceRange', range.id)}
+                    >
+                      {range.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <button className="clear-filters-btn" onClick={clearFilters}>
-              🗑️ Очистити фільтри
-            </button>
+              {/* Сортировка */}
+              <div className="filter-group">
+                <h3 className="filter-title">
+                  <span className="filter-icon">📊</span>
+                  Сортування
+                </h3>
+                <div className="filter-options sort-options">
+                  <select
+                    value={filters.sortBy}
+                    onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                    className="sort-select luxury-select"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Очистить фильтры */}
+              <button className="clear-filters-btn" onClick={clearFilters}>
+                <span>🗑️</span>
+                Очистити фільтри
+              </button>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Results */}
-        <div className="catalog-results">
+      {/* Результаты */}
+      <section className="catalog-results">
+        <div className="container">
           <div className="results-header">
-            <h3>
-              Знайдено: {filteredProducts.length} {filteredProducts.length === 1 ? 'товар' : 'товарів'}
-            </h3>
+            <h2 className="results-title">
+              {searchQuery ? `Результати пошуку: "${searchQuery}"` : 'Наші колекції'}
+            </h2>
+            <div className="results-count">
+              Знайдено <span className="count-number">{sortedProducts.length}</span> товарів
+            </div>
           </div>
 
           {isLoading ? (
-            <div className="loading-grid">
-              {[...Array(8)].map((_, index) => (
-                <div key={index} className="loading-card">
-                  <div className="loading-image"></div>
+            <div className="loading-grid luxury-loading">
+              {[...Array(6)].map((_, index) => (
+                <div key={index} className="loading-card luxury-loading-card">
+                  <div className="loading-image luxury-loading-image"></div>
                   <div className="loading-content">
-                    <div className="loading-line"></div>
-                    <div className="loading-line short"></div>
-                    <div className="loading-line"></div>
+                    <div className="loading-line luxury-loading-line"></div>
+                    <div className="loading-line luxury-loading-line short"></div>
+                    <div className="loading-line luxury-loading-line"></div>
                   </div>
                 </div>
               ))}
             </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="no-results">
-              <div className="no-results-icon">🌸</div>
-              <h3>Товарів не знайдено</h3>
-              <p>Спробуйте змінити параметри пошуку або очистити фільтри</p>
-              <button className="reset-btn" onClick={clearFilters}>
-                🔄 Скинути фільтри
-              </button>
-            </div>
-          ) : (
-            <div className="products-grid">
-              {filteredProducts.map(product => (
+          ) : sortedProducts.length > 0 ? (
+            <div className="products-grid luxury-products-grid">
+              {sortedProducts.map(product => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   onAddToCart={onAddToCart}
-                  onQuickView={handleQuickView}
+                  luxury={product.luxury}
                 />
               ))}
             </div>
+          ) : (
+            <div className="no-results">
+              <div className="no-results-icon">🌸</div>
+              <h3>Товари не знайдені</h3>
+              <p>Спробуйте змінити параметри пошуку або фільтри</p>
+              <button className="luxury-button" onClick={clearFilters}>
+                Показати всі товари
+              </button>
+            </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 };

@@ -1,316 +1,328 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
+import apiService from '../services/api';
 import '../styles/pages/Home.css';
 
 const Home = ({ onAddToCart }) => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSlide, setCurrentSlide] = useState(0); // ✅ Добавляем состояние
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [apiError, setApiError] = useState(false);
 
-  // ========== ДОБАВЛЯЕМ ДАННЫЕ ГЕРОЯ ==========
-  const heroSlides = [
-    {
-      id: 1,
-      title: 'Midnight Embrace',
-      subtitle: 'Преміальна колекція',
-      description: 'Темна естетика зустрічається з розкішшю у цій колекції',
-      price: '4 299 ₴',
-      oldPrice: '4 999 ₴',
-      cta: 'ЗАМОВИТИ ЗАРАЗ',
-      image: 'https://via.placeholder.com/800x600/2a2a2a/d4af37?text=🌸+Midnight'
-    },
-    {
-      id: 2,
-      title: 'Golden Dreams',
-      subtitle: 'Золота колекція',
-      description: 'Втілення розкоші та витонченості в кожній деталі',
-      price: '5 299 ₴',
-      oldPrice: null,
-      cta: 'ВІДКРИТИ МРІЮ',
-      image: 'https://via.placeholder.com/800x600/d4af37/000?text=✨+Golden'
-    },
-    {
-      id: 3,
-      title: 'Spring Symphony',
-      subtitle: 'Весняна колекція',
-      description: 'Свіжість та ніжність весняних квітів у преміальному оформленні',
-      price: '2 999 ₴',
-      oldPrice: '3 499 ₴',
-      cta: 'ЗАМОВИТИ ВЕСНУ',
-      image: 'https://via.placeholder.com/800x600/90EE90/000?text=🌷+Spring'
-    }
-  ];
-
-  // ========== ФУНКЦІЯ getFeaturedProducts ==========
+  // ========== ПОЛУЧЕНИЕ ДАННЫХ ИЗ РЕАЛЬНОГО API ==========
   const getFeaturedProducts = async () => {
-    // Имитируем задержку API
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return [
-      {
-        id: '1',
-        name: 'Midnight Embrace Box',
-        category: 'Преміальні бокси',
-        shortDescription: 'Преміальний бокс для створення містичної атмосфери',
-        price: 4299,
-        oldPrice: 4999,
-        images: ['https://via.placeholder.com/400x400/2a2a2a/d4af37?text=🌸'],
-        rating: 4.8,
-        reviewsCount: 127,
-        inStock: true,
-        featured: true,
-        badge: { type: 'premium', text: 'Premium' }
-      },
-      {
-        id: '2',
-        name: 'Golden Dreams Premium',
-        category: 'Преміальні бокси',
-        shortDescription: 'Золотий преміум бокс з білими орхідеями',
-        price: 5299,
-        images: ['https://via.placeholder.com/400x400/d4af37/000?text=✨'],
-        rating: 4.9,
-        reviewsCount: 89,
-        inStock: true,
-        featured: true,
-        badge: { type: 'new', text: 'Новинка' }
-      },
-      {
-        id: '3',
-        name: 'Spring Symphony',
-        category: 'Сезонні бокси',
-        shortDescription: 'Весняна колекція з тюльпанами',
-        price: 2999,
-        oldPrice: 3499,
-        images: ['https://via.placeholder.com/400x400/90EE90/000?text=🌷'],
-        rating: 4.6,
-        reviewsCount: 203,
-        inStock: true,
-        featured: true,
-        badge: { type: 'sale', text: '-15%' }
-      },
-      {
-        id: '4',
-        name: 'Royal Roses',
-        category: 'Класичні бокси',
-        shortDescription: 'Королівські троянди в елегантному боксі',
-        price: 3799,
-        images: ['https://via.placeholder.com/400x400/8B0000/FFD700?text=🌹'],
-        rating: 4.7,
-        reviewsCount: 156,
-        inStock: true,
-        featured: true,
-        badge: { type: 'bestseller', text: 'Хіт продажів' }
-      }
-    ];
+    try {
+      setIsLoading(true);
+      setApiError(false);
+      console.log('🚀 Запрос данных из API...');
+      
+      // Реальный запрос к API
+      const products = await apiService.getFeaturedProducts();
+      
+      console.log('✅ Получены продукты от API:', products);
+      setFeaturedProducts(products);
+      
+    } catch (error) {
+      console.error('❌ Ошибка загрузки товаров:', error);
+      setApiError(true);
+      setFeaturedProducts([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const loadFeaturedProducts = async () => {
-      try {
-        const products = await getFeaturedProducts();
-        setFeaturedProducts(products);
-      } catch (error) {
-        console.error('Помилка завантаження товарів:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadFeaturedProducts();
+    getFeaturedProducts();
   }, []);
 
-  // ========== АВТОМАТИЧЕСКАЯ СМЕНА СЛАЙДОВ ==========
+  // ========== АВТОСЛАЙДЕР ДЛЯ HERO (ИСПОЛЬЗУЕМ ПРОДУКТЫ ИЗ API) ==========
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
-    }, 5000); // Меняем слайд каждые 5 секунд
+    if (featuredProducts.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentSlide(prev => (prev + 1) % featuredProducts.length);
+      }, 6000);
 
-    return () => clearInterval(interval);
-  }, [heroSlides.length]);
+      return () => clearInterval(interval);
+    }
+  }, [featuredProducts.length]);
 
   const handleSlideChange = (index) => {
     setCurrentSlide(index);
   };
 
   const handleQuickView = (product) => {
-    // TODO: Відкрити модалку швидкого перегляду
     console.log('Швидкий перегляд:', product);
   };
 
+  // ========== ПРЕОБРАЗОВАНИЕ ПРОДУКТА В HERO СЛАЙД ==========
+  const productToHeroSlide = (product) => ({
+    id: product._id,
+    title: product.name,
+    subtitle: product.luxury ? 'EXCLUSIVE PREMIUM COLLECTION' : 'SIGNATURE AROMATHERAPY',
+    description: product.shortDescription,
+    price: `${product.price.toLocaleString()} ₴`,
+    oldPrice: product.oldPrice ? `${product.oldPrice.toLocaleString()} ₴` : null,
+    discount: product.discount ? `${product.discount}%` : null,
+    cta: '✨ ЗАМОВИТИ ЗАРАЗ',
+    ctaSecondary: product.luxury ? '💎 ПЕРСОНАЛІЗУВАТИ' : '🎨 ДЕТАЛЬНІШЕ',
+    image: product.images?.main || 'https://via.placeholder.com/800x600/2a2a2a/d4af37?text=🌙',
+    badge: product.badge?.text || (product.luxury ? 'LUXURY EDITION' : 'PREMIUM QUALITY'),
+    luxury: product.luxury,
+    aromaticNotes: product.aromaticProfile?.middleNotes || [],
+    ingredients: product.ingredients || [],
+    topNotes: product.aromaticProfile?.topNotes || [],
+    baseNotes: product.aromaticProfile?.baseNotes || [],
+    mood: product.aromaticProfile?.mood || '',
+    family: product.aromaticProfile?.family || ''
+  });
+
   return (
     <div className="home-page">
-      {/* Hero Section */}
+      {/* ========== HERO SECTION С ДАННЫМИ ИЗ API ========== */}
       <section className="hero-section">
-        <div className="hero-slider">
-          {heroSlides.map((slide, index) => (
-            <div 
-              key={slide.id}
-              className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
-            >
-              <div className="hero-background">
-                <img src={slide.image} alt={slide.title} />
-                <div className="hero-overlay"></div>
+        <div className="floating-elements">
+          <div className="floating-flower">🌙</div>
+          <div className="floating-star">✨</div>
+          <div className="floating-diamond">💎</div>
+        </div>
+
+        {isLoading ? (
+          // Loading состояние для Hero
+          <div className="hero-loading">
+            <div className="hero-loading-content">
+              <div className="loading-spinner">
+                <div className="spinner-moon">🌙</div>
               </div>
+              <h2>Завантаження ексклюзивних боксів...</h2>
+              <p>Підготовуємо для вас найкращі ароматичні композиції</p>
+            </div>
+          </div>
+        ) : apiError ? (
+          // Ошибка API
+          <div className="hero-error">
+            <div className="hero-error-content">
+              <div className="error-icon">🌙</div>
+              <h2>BloomShine - Ексклюзивні ароматичні бокси</h2>
+              <p>Тимчасово недоступно з'єднання з сервером</p>
+              <button 
+                className="retry-button luxury-button"
+                onClick={getFeaturedProducts}
+              >
+                🔄 Спробувати знову
+              </button>
+            </div>
+          </div>
+        ) : featuredProducts.length > 0 ? (
+          <div className="hero-slider">
+            {featuredProducts.map((product, index) => {
+              const heroSlide = productToHeroSlide(product);
               
-              <div className="container">
-                <div className="hero-content">
-                  <div className="hero-text">
-                    <h1 className="hero-title">{slide.title}</h1>
-                    <p className="hero-subtitle">{slide.subtitle}</p>
-                    <p className="hero-description">{slide.description}</p>
-                    
-                    <div className="hero-price">
-                      {slide.oldPrice && (
-                        <span className="old-price">{slide.oldPrice}</span>
-                      )}
-                      <span className="current-price">{slide.price}</span>
-                    </div>
-                    
-                    <div className="hero-actions">
-                      <button className="cta-primary">
-                        🌺 {slide.cta}
-                      </button>
-                      <button className="cta-secondary">
-                        ✨ СТВОРИТИ ВЛАСНИЙ НАБІР
-                      </button>
-                    </div>
+              return (
+                <div 
+                  key={heroSlide.id}
+                  className={`hero-slide ${index === currentSlide ? 'active' : ''} ${heroSlide.luxury ? 'luxury' : ''}`}
+                >
+                  <div className="hero-background">
+                    <img src={heroSlide.image} alt={heroSlide.title} />
+                    <div className="hero-overlay"></div>
+                    <div className="luxury-pattern"></div>
                   </div>
                   
-                  <div className="hero-product">
-                    <div className="product-showcase">
-                      <img src={slide.image} alt={slide.title} />
+                  <div className="container">
+                    <div className="hero-content">
+                      <div className="hero-text">
+                        {heroSlide.badge && (
+                          <div className="luxury-badge">
+                            <span className="badge-icon">🌙</span>
+                            {heroSlide.badge}
+                          </div>
+                        )}
+                        
+                        <h1 className="hero-title">{heroSlide.title}</h1>
+                        <p className="hero-subtitle">{heroSlide.subtitle}</p>
+                        <p className="hero-description">{heroSlide.description}</p>
+                        
+                        {/* Ароматический профиль */}
+                        {heroSlide.family && (
+                          <div className="aromatic-family">
+                            <span className="family-label">Ароматична сім'я:</span>
+                            <span className="family-value">{heroSlide.family}</span>
+                          </div>
+                        )}
+                        
+                        {/* Ароматические ноты из базы */}
+                        {heroSlide.aromaticNotes.length > 0 && (
+                          <div className="aromatic-notes">
+                            <span className="notes-label">Основні ноти:</span>
+                            <div className="notes-list">
+                              {heroSlide.aromaticNotes.map((note, noteIndex) => (
+                                <span key={noteIndex} className="note-tag">{note}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Настроение аромата */}
+                        {heroSlide.mood && (
+                          <div className="aromatic-mood">
+                            <span className="mood-icon">✨</span>
+                            <span className="mood-text">{heroSlide.mood}</span>
+                          </div>
+                        )}
+                        
+                        <div className="hero-price">
+                          {heroSlide.oldPrice && (
+                            <>
+                              <span className="old-price">{heroSlide.oldPrice}</span>
+                              {heroSlide.discount && (
+                                <span className="discount-badge">-{heroSlide.discount}</span>
+                              )}
+                            </>
+                          )}
+                          <span className="current-price">{heroSlide.price}</span>
+                        </div>
+
+                        {/* Состав из базы */}
+                        {heroSlide.ingredients.length > 0 && (
+                          <div className="box-info">
+                            <span className="info-item">
+                              <span className="info-icon">📦</span>
+                              {heroSlide.ingredients.length} унікальних предметів
+                            </span>
+                            <span className="info-item">
+                              <span className="info-icon">🎨</span>
+                              Авторське оформлення
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="hero-actions">
+                          <button 
+                            className="cta-primary luxury-button"
+                            onClick={() => onAddToCart(product)}
+                          >
+                            {heroSlide.cta}
+                          </button>
+                          <button 
+                            className="cta-secondary luxury-button-outline"
+                            onClick={() => handleQuickView(product)}
+                          >
+                            {heroSlide.ctaSecondary}
+                          </button>
+                        </div>
+
+                        {/* Luxury Features */}
+                        <div className="luxury-features">
+                          <div className="feature">
+                            <span className="feature-icon">🚚</span>
+                            <span>Безкоштовна доставка</span>
+                          </div>
+                          <div className="feature">
+                            <span className="feature-icon">💎</span>
+                            <span>Преміальна упаковка</span>
+                          </div>
+                          <div className="feature">
+                            <span className="feature-icon">🎯</span>
+                            <span>Гарантія якості</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="hero-product">
+                        <div className="product-showcase luxury-showcase">
+                          <img src={heroSlide.image} alt={heroSlide.title} />
+                          <div className="showcase-glow"></div>
+                          
+                          {/* Детали продукта */}
+                          <div className="product-details-overlay">
+                            {heroSlide.topNotes.length > 0 && (
+                              <div className="notes-preview">
+                                <div className="notes-section">
+                                  <span className="notes-title">Верхні ноти:</span>
+                                  <span className="notes-content">{heroSlide.topNotes.join(', ')}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        ) : (
+          // Fallback если нет продуктов
+          <div className="hero-fallback">
+            <div className="container">
+              <div className="fallback-content">
+                <h1>🌙 BloomShine</h1>
+                <h2>Ексклюзивні ароматичні бокси</h2>
+                <p>Найкращі ароматичні композиції для створення унікальної атмосфери</p>
+                <button 
+                  className="retry-button luxury-button"
+                  onClick={getFeaturedProducts}
+                >
+                  🔄 Завантажити продукти
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-        
-        {/* Slide Indicators */}
-        <div className="hero-indicators">
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              className={`indicator ${index === currentSlide ? 'active' : ''}`}
-              onClick={() => handleSlideChange(index)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="features-section">
-        <div className="container">
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🌟</div>
-              <h3>Преміальна якість</h3>
-              <p>Тільки найкращі квіти від перевірених постачальників</p>
-            </div>
-            
-            <div className="feature-card">
-              <div className="feature-icon">🚚</div>
-              <h3>Швидка доставка</h3>
-              <p>Доставка по Києву за 2 години, по Україні - наступний день</p>
-            </div>
-            
-            <div className="feature-card">
-              <div className="feature-icon">🎨</div>
-              <h3>Унікальний дизайн</h3>
-              <p>Кожен бокс створюється вручну нашими флористами</p>
-            </div>
-            
-            <div className="feature-card">
-              <div className="feature-icon">💎</div>
-              <h3>Індивідуальний підхід</h3>
-              <p>Створюємо бокси за вашими побажаннями та емоціями</p>
-            </div>
           </div>
-        </div>
+        )}
+        
+        {/* Индикаторы слайдов - только если есть продукты */}
+        {featuredProducts.length > 1 && (
+          <div className="hero-indicators">
+            {featuredProducts.map((_, index) => (
+              <button
+                key={index}
+                className={`indicator ${index === currentSlide ? 'active' : ''}`}
+                onClick={() => handleSlideChange(index)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Featured Products */}
-      <section className="featured-section">
+      {/* ========== ПРЕМИАЛЬНЫЕ FEATURES ========== */}
+      <section className="features-section luxury-features-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">🌸 Рекомендовані колекції</h2>
-            <p className="section-subtitle">
-              Преміальні квіткові бокси для створення особливих моментів
-            </p>
+            <h2 className="section-title luxury-title">
+              <span className="title-icon">🌙</span>
+              Чому обирають BloomShine
+            </h2>
+            <p className="section-subtitle">Преміальні ароматичні бокси найвищої якості</p>
           </div>
-          
-          {isLoading ? (
-            <div className="loading-grid">
-              {[...Array(4)].map((_, index) => (
-                <div key={index} className="loading-card">
-                  <div className="loading-image"></div>
-                  <div className="loading-content">
-                    <div className="loading-line"></div>
-                    <div className="loading-line short"></div>
-                    <div className="loading-line"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="products-grid">
-              {featuredProducts.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={onAddToCart}
-                  onQuickView={handleQuickView}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
 
-      {/* Collections Section */}
-      <section className="collections-section">
-        <div className="container">
-          <h2 className="section-title">🌺 Наші колекції</h2>
-          
-          <div className="collections-grid">
-            <div className="collection-card large">
-              <div className="collection-image">
-                <img src="https://via.placeholder.com/600x400/d4af37/000?text=Premium" alt="Premium Collection" />
-                <div className="collection-overlay">
-                  <div className="collection-content">
-                    <h3>Premium Collection</h3>
-                    <p>Найрозкішніші бокси для особливих моментів</p>
-                    <button className="collection-btn">Переглянути</button>
-                  </div>
-                </div>
-              </div>
+          <div className="features-grid luxury-grid">
+            <div className="feature-card luxury-card">
+              <div className="feature-icon luxury-icon">🌟</div>
+              <h3>Унікальні композиції</h3>
+              <p>Ексклюзивні ароматичні суміші від провідних парфумерів світу. Кожен аромат створений вручну.</p>
+              <div className="card-glow"></div>
             </div>
             
-            <div className="collection-card">
-              <div className="collection-image">
-                <img src="https://via.placeholder.com/400x300/90EE90/000?text=Seasonal" alt="Seasonal Collection" />
-                <div className="collection-overlay">
-                  <div className="collection-content">
-                    <h3>Сезонні бокси</h3>
-                    <p>Квіти сезону в стильному оформленні</p>
-                    <button className="collection-btn">Переглянути</button>
-                  </div>
-                </div>
-              </div>
+            <div className="feature-card luxury-card">
+              <div className="feature-icon luxury-icon">🚁</div>
+              <h3>Експрес доставка</h3>
+              <p>Швидка доставка по Україні за 1-2 дні. Спеціальна упаковка для збереження ароматів.</p>
+              <div className="card-glow"></div>
             </div>
             
-            <div className="collection-card">
-              <div className="collection-image">
-                <img src="https://via.placeholder.com/400x300/FFB6C1/000?text=Aromatic" alt="Aromatic Collection" />
-                <div className="collection-overlay">
-                  <div className="collection-content">
-                    <h3>Ароматичні бокси</h3>
-                    <p>Квіти з неповторним ароматом</p>
-                    <button className="collection-btn">Переглянути</button>
-                  </div>
-                </div>
-              </div>
+            <div className="feature-card luxury-card">
+              <div className="feature-icon luxury-icon">🎨</div>
+              <h3>Авторське оформлення</h3>
+              <p>Кожен бокс - унікальний витвір мистецтва з преміальними матеріалами та елегантним дизайном.</p>
+              <div className="card-glow"></div>
+            </div>
+            
+            <div className="feature-card luxury-card">
+              <div className="feature-icon luxury-icon">💎</div>
+              <h3>Премиум сервіс</h3>
+              <p>Персональні рекомендації, ексклюзивні пропозиції та кваліфікована підтримка клієнтів.</p>
+              <div className="card-glow"></div>
             </div>
           </div>
         </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ProductCard from '../components/ProductCard';
 import '../styles/pages/Product.css';
 
 const Product = ({ onAddToCart }) => {
@@ -8,157 +7,193 @@ const Product = ({ onAddToCart }) => {
   const navigate = useNavigate();
   
   const [product, setProduct] = useState(null);
-  const [relatedProducts, setRelatedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [activeTab, setActiveTab] = useState('description');
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // ========== ДОБАВЛЯЕМ ФУНКЦИИ ==========
-  const getProducts = async () => {
-    return [
-      {
-        id: '1',
-        name: 'Midnight Embrace Box',
-        category: 'Преміальні бокси',
-        shortDescription: 'Преміальний бокс для створення містичної атмосфери',
-        price: 4299,
-        oldPrice: 4999,
-        images: ['https://via.placeholder.com/400x400/2a2a2a/d4af37?text=🌸'],
-        rating: 4.8,
-        reviewsCount: 127,
-        inStock: true,
-        featured: true,
-        badge: { type: 'premium', text: 'Premium' }
-      },
-      {
-        id: '2',
-        name: 'Golden Dreams Premium',
-        category: 'Преміальні бокси',
-        shortDescription: 'Золотий преміум бокс з білими орхідеями',
-        price: 5299,
-        images: ['https://via.placeholder.com/400x400/d4af37/000?text=✨'],
-        rating: 4.9,
-        reviewsCount: 89,
-        inStock: true,
-        featured: true,
-        badge: { type: 'new', text: 'Новинка' }
-      }
-    ];
-  };
+  // Премиальные размеры
+  const luxurySizes = [
+    { id: 'small', name: 'Міні', description: 'Елегантна мініатюра', price: 0, icon: '🌸' },
+    { id: 'medium', name: 'Стандарт', description: 'Класичний розмір', price: 0, icon: '🌺' },
+    { id: 'large', name: 'Преміум', description: 'Розкішна композиція', price: 1000, icon: '👑' },
+    { id: 'xl', name: 'Люкс', description: 'Грандіозна розкіш', price: 2500, icon: '💎' }
+  ];
 
+  // Мок данные товара
   const getProductById = async (productId) => {
-    const products = await getProducts();
-    const product = products.find(p => p.id === productId);
-    if (!product) {
-      throw new Error('Товар не найден');
-    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     return {
-      ...product,
-      fullDescription: 'Подробное описание товара. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      sizes: ['Міні', 'Стандарт', 'Преміум'],
-      tags: ['премиум', 'подарок', 'эксклюзив']
+      id: productId,
+      name: 'Midnight Embrace Luxury Box',
+      category: 'Преміальні бокси',
+      shortDescription: 'Преміальний бокс для створення містичної атмосфери з чорними трояндами та золотими акцентами',
+      fullDescription: `Ексклюзивна колекція "Midnight Embrace" створена для тих, хто цінує справжню розкіш та витонченість. 
+      
+      Кожен бокс майстерно виготовлений вручну з найякісніших матеріалів та оздоблений золотими акцентами. Чорні троянди преміум-класу доповнені рідкісними квітами та кристалами Swarovski.
+      
+      Ця композиція ідеально підходить для особливих моментів та створення незабутньої атмосфери романтики та таємничості.`,
+      
+      price: 4299,
+      oldPrice: 4999,
+      
+      images: [
+        'https://via.placeholder.com/800x800/2a2a2a/d4af37?text=🌸+Main',
+        'https://via.placeholder.com/800x800/1a1a1a/d4af37?text=🌹+Detail+1',
+        'https://via.placeholder.com/800x800/0f0f0f/d4af37?text=💎+Detail+2',
+        'https://via.placeholder.com/800x800/2d2d2d/d4af37?text=✨+Detail+3',
+        'https://via.placeholder.com/800x800/1e1e1e/d4af37?text=👑+Detail+4'
+      ],
+      
+      rating: 4.9,
+      reviewsCount: 127,
+      inStock: true,
+      stockQuantity: 8,
+      
+      badge: { type: 'premium', text: 'Limited Edition' },
+      luxury: true,
+      
+      features: [
+        { icon: '🌹', title: 'Преміальні троянди', description: 'Рідкісні чорні троянди з еквадорських плантацій' },
+        { icon: '💎', title: 'Кристали Swarovski', description: 'Справжні австрійські кристали ручної роботи' },
+        { icon: '🎨', title: 'Авторський дизайн', description: 'Ексклюзивна композиція від топ-флористів' },
+        { icon: '📦', title: 'Преміум упаковка', description: 'Розкішна подарункова упаковка з золотим тисненням' },
+        { icon: '🚚', title: 'VIP доставка', description: 'Експрес-доставка з холодильним транспортом' },
+        { icon: '🎯', title: 'Гарантія свіжості', description: '7 днів гарантії збереження первинного вигляду' }
+      ],
+      
+      specifications: [
+        { label: 'Розмір боксу', value: '30 x 30 x 15 см' },
+        { label: 'Матеріал', value: 'Натуральна шкіра преміум-класу' },
+        { label: 'Кількість квітів', value: '25-30 троянд' },
+        { label: 'Країна походження', value: 'Еквадор' },
+        { label: 'Термін свіжості', value: '7-10 днів' },
+        { label: 'Вага', value: '2.5 кг' }
+      ],
+      
+      careInstructions: [
+        '💧 Обережно розпилюйте воду на пелюстки раз на день',
+        '🌡️ Зберігайте при температурі 18-22°C',
+        '☀️ Уникайте прямих сонячних променів',
+        '🌬️ Тримайте подалі від кондиціонерів та обігрівачів',
+        '✂️ Обрізайте стебла під кутом кожні 2-3 дні',
+        '🧹 Видаляйте зів\'ялі пелюстки для подовження свіжості'
+      ],
+      
+      reviews: [
+        {
+          id: 1,
+          name: 'Анна К.',
+          rating: 5,
+          date: '2024-01-15',
+          comment: 'Неймовірно красиво! Якість на найвищому рівні. Дуже задоволена покупкою.',
+          verified: true
+        },
+        {
+          id: 2,
+          name: 'Михайло П.',
+          rating: 5,
+          date: '2024-01-10',
+          comment: 'Подарував дружині на річницю - вона в захваті! Рекомендую всім.',
+          verified: true
+        },
+        {
+          id: 3,
+          name: 'Олена В.',
+          rating: 4,
+          date: '2024-01-05',
+          comment: 'Красива композиція, але ціна трохи висока. В цілому задоволена.',
+          verified: false
+        }
+      ]
     };
-  };
-
-  const loadProduct = async () => {
-    try {
-      setIsLoading(true);
-      const productData = await getProductById(id);
-      setProduct(productData);
-      
-      // Устанавливаем размер по умолчанию
-      if (productData.sizes && productData.sizes.length > 0) {
-        setSelectedSize(productData.sizes[0]);
-      }
-      
-      // Загружаем похожие товары
-      const allProducts = await getProducts();
-      const related = allProducts
-        .filter(p => p.id !== id && p.category === productData.category)
-        .slice(0, 4);
-      setRelatedProducts(related);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   useEffect(() => {
-    loadProduct();
-  }, [id]);
-
-  const loadRelatedProducts = async (category) => {
-    try {
-      const allProducts = await getProducts();
-      const related = allProducts
-        .filter(p => p.id !== id && p.category === category)
-        .slice(0, 4);
-      setRelatedProducts(related);
-    } catch (err) {
-      console.error('Помилка завантаження схожих товарів:', err);
-    }
-  };
-
-  const handleAddToCart = () => {
-    if (!product.inStock) return;
-    
-    const cartItem = {
-      ...product,
-      selectedSize,
-      quantity
+    const loadProduct = async () => {
+      try {
+        const productData = await getProductById(id);
+        setProduct(productData);
+        setSelectedSize(luxurySizes[1].id); // По умолчанию средний размер
+      } catch (error) {
+        console.error('Помилка завантаження товару:', error);
+        navigate('/catalog');
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    onAddToCart(cartItem);
-    
-    // Показываем уведомление
-    alert(`${product.name} додано до кошика!`);
-  };
+    loadProduct();
+  }, [id, navigate]);
 
-  const handleQuantityChange = (change) => {
-    const newQuantity = quantity + change;
-    if (newQuantity >= 1 && newQuantity <= 10) {
-      setQuantity(newQuantity);
+  const handleAddToCart = async () => {
+    if (!selectedSize) {
+      alert('Будь ласка, оберіть розмір');
+      return;
+    }
+
+    setIsAddingToCart(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const selectedSizeInfo = luxurySizes.find(size => size.id === selectedSize);
+      const finalPrice = product.price + selectedSizeInfo.price;
+      
+      const cartItem = {
+        ...product,
+        selectedSize: selectedSize,
+        quantity: quantity,
+        finalPrice: finalPrice
+      };
+      
+      onAddToCart(cartItem);
+    } catch (error) {
+      console.error('Помилка додавання до кошика:', error);
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
-  const handleImageChange = (index) => {
-    setCurrentImageIndex(index);
-  };
-
-  const handleQuickView = (product) => {
-    navigate(`/product/${product.id}`);
+  const getCurrentPrice = () => {
+    if (!product || !selectedSize) return product?.price || 0;
+    
+    const selectedSizeInfo = luxurySizes.find(size => size.id === selectedSize);
+    return product.price + (selectedSizeInfo?.price || 0);
   };
 
   if (isLoading) {
     return (
-      <div className="product-page loading">
+      <div className="product-loading">
         <div className="container">
           <div className="loading-content">
-            <div className="loading-image"></div>
-            <div className="loading-details">
-              <div className="loading-line"></div>
-              <div className="loading-line short"></div>
-              <div className="loading-line"></div>
+            <div className="loading-spinner luxury-spinner">
+              <div className="spinner-icon">🌸</div>
             </div>
+            <h2>Завантаження розкоші...</h2>
+            <p>Підготовуємо ексклюзивні деталі для вас</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (!product) {
     return (
-      <div className="product-page error">
+      <div className="product-not-found">
         <div className="container">
-          <div className="error-content">
-            <h2>🌸 Товар не знайдено</h2>
-            <p>{error}</p>
-            <button onClick={() => navigate('/catalog')} className="back-btn">
-              ← Повернутися до каталогу
+          <div className="not-found-content">
+            <div className="not-found-icon">🌸</div>
+            <h2>Товар не знайдено</h2>
+            <p>Вибачте, але цей товар більше не доступний</p>
+            <button 
+              className="luxury-button"
+              onClick={() => navigate('/catalog')}
+            >
+              🏠 Повернутися до каталогу
             </button>
           </div>
         </div>
@@ -168,228 +203,313 @@ const Product = ({ onAddToCart }) => {
 
   return (
     <div className="product-page">
-      <div className="container">
-        {/* Breadcrumbs */}
-        <nav className="breadcrumbs">
-          <span onClick={() => navigate('/')} className="breadcrumb-link">Головна</span>
-          <span className="breadcrumb-separator">›</span>
-          <span onClick={() => navigate('/catalog')} className="breadcrumb-link">Каталог</span>
-          <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-current">{product.name}</span>
-        </nav>
+      {/* Breadcrumbs */}
+      <section className="breadcrumbs-section">
+        <div className="container">
+          <nav className="breadcrumbs">
+            <button onClick={() => navigate('/')} className="breadcrumb-link">
+              🏠 Головна
+            </button>
+            <span className="breadcrumb-separator">›</span>
+            <button onClick={() => navigate('/catalog')} className="breadcrumb-link">
+              📖 Каталог
+            </button>
+            <span className="breadcrumb-separator">›</span>
+            <span className="breadcrumb-current">{product.name}</span>
+          </nav>
+        </div>
+      </section>
 
-        {/* Product Details */}
-        <div className="product-details">
-          {/* Product Images */}
-          <div className="product-images">
-            <div className="main-image">
-              <img 
-                src={product.images[currentImageIndex]} 
-                alt={product.name}
-                onError={(e) => {
-                  e.target.src = '/images/placeholder-box.jpg';
-                }}
-              />
-              {product.badge && (
-                <div className={`product-badge ${product.badge.type}`}>
-                  {product.badge.text}
+      {/* Main Product Section */}
+      <section className="product-main">
+        <div className="container">
+          <div className="product-grid">
+            {/* Product Gallery */}
+            <div className="product-gallery">
+              <div className="main-image-container">
+                <img 
+                  src={product.images[selectedImage]} 
+                  alt={product.name}
+                  className="main-image"
+                />
+                <div className="image-overlay">
+                  <div className="luxury-badge-overlay">
+                    <span className="badge-icon">👑</span>
+                    {product.badge.text}
+                  </div>
                 </div>
-              )}
-            </div>
-            
-            {product.images.length > 1 && (
-              <div className="image-thumbnails">
+              </div>
+              
+              <div className="thumbnail-gallery">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
-                    className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
-                    onClick={() => handleImageChange(index)}
+                    className={`thumbnail ${index === selectedImage ? 'active' : ''}`}
+                    onClick={() => setSelectedImage(index)}
                   >
                     <img src={image} alt={`${product.name} ${index + 1}`} />
                   </button>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Product Info */}
-          <div className="product-info">
-            <div className="product-category">{product.category}</div>
-            <h1 className="product-title">{product.name}</h1>
-            
-            {/* Rating */}
-            <div className="product-rating">
-              <div className="stars">
-                {[...Array(5)].map((_, i) => (
-                  <span 
-                    key={i} 
-                    className={`star ${i < product.rating ? 'filled' : ''}`}
-                  >
-                    ⭐
+            {/* Product Info */}
+            <div className="product-info">
+              <div className="product-header">
+                <div className="product-category">{product.category}</div>
+                <h1 className="product-title">{product.name}</h1>
+                <p className="product-description">{product.shortDescription}</p>
+                
+                <div className="product-rating">
+                  <div className="stars">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={i < Math.floor(product.rating) ? 'star filled' : 'star'}>
+                        ⭐
+                      </span>
+                    ))}
+                  </div>
+                  <span className="rating-text">
+                    {product.rating} ({product.reviewsCount} відгуків)
                   </span>
-                ))}
+                </div>
               </div>
-              <span className="rating-text">
-                {product.rating} ({product.reviewsCount} відгуків)
-              </span>
-            </div>
 
-            {/* Price */}
-            <div className="product-price">
-              {product.oldPrice && (
-                <span className="old-price">{product.oldPrice} ₴</span>
-              )}
-              <span className="current-price">{product.price} ₴</span>
-              {product.oldPrice && (
-                <span className="discount-percent">
-                  -{Math.round((1 - product.price / product.oldPrice) * 100)}%
-                </span>
-              )}
-            </div>
+              <div className="product-pricing">
+                {product.oldPrice && (
+                  <span className="old-price">{product.oldPrice} ₴</span>
+                )}
+                <span className="current-price">{getCurrentPrice()} ₴</span>
+                {product.oldPrice && (
+                  <span className="discount">
+                    Знижка {Math.round((1 - product.price / product.oldPrice) * 100)}%
+                  </span>
+                )}
+              </div>
 
-            {/* Description */}
-            <div className="product-description">
-              <p>{product.shortDescription}</p>
-              
-              {product.fullDescription && (
-                <div className="full-description">
-                  {showFullDescription ? (
-                    <>
-                      <p>{product.fullDescription}</p>
-                      <button 
-                        className="description-toggle"
-                        onClick={() => setShowFullDescription(false)}
-                      >
-                        Згорнути ↑
-                      </button>
-                    </>
-                  ) : (
-                    <button 
-                      className="description-toggle"
-                      onClick={() => setShowFullDescription(true)}
+              {/* Size Selection */}
+              <div className="size-selection">
+                <h3 className="selection-title">
+                  <span className="title-icon">📏</span>
+                  Оберіть розмір
+                </h3>
+                <div className="size-options">
+                  {luxurySizes.map(size => (
+                    <label 
+                      key={size.id}
+                      className={`size-option ${selectedSize === size.id ? 'selected' : ''}`}
                     >
-                      Детальніше ↓
+                      <input
+                        type="radio"
+                        name="size"
+                        value={size.id}
+                        checked={selectedSize === size.id}
+                        onChange={(e) => setSelectedSize(e.target.value)}
+                      />
+                      <div className="size-content">
+                        <span className="size-icon">{size.icon}</span>
+                        <div className="size-details">
+                          <span className="size-name">{size.name}</span>
+                          <span className="size-description">{size.description}</span>
+                          {size.price > 0 && (
+                            <span className="size-price">+{size.price} ₴</span>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quantity & Add to Cart */}
+              <div className="purchase-section">
+                <div className="quantity-selector">
+                  <label className="quantity-label">Кількість:</label>
+                  <div className="quantity-controls">
+                    <button 
+                      className="quantity-btn"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      -
                     </button>
+                    <span className="quantity-value">{quantity}</span>
+                    <button 
+                      className="quantity-btn"
+                      onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
+                      disabled={quantity >= product.stockQuantity}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="purchase-actions">
+                  <button 
+                    className={`add-to-cart-btn luxury-button ${isAddingToCart ? 'loading' : ''}`}
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || !product.inStock}
+                  >
+                    {isAddingToCart ? (
+                      <>
+                        <span className="loading-spinner">⏳</span>
+                        Додаємо...
+                      </>
+                    ) : (
+                      <>
+                        <span className="cart-icon">🛒</span>
+                        Додати до кошика
+                      </>
+                    )}
+                  </button>
+                  
+                  <button className="buy-now-btn luxury-button-outline">
+                    <span className="lightning-icon">⚡</span>
+                    Купити зараз
+                  </button>
+                </div>
+
+                <div className="stock-info">
+                  {product.inStock ? (
+                    <span className="in-stock">
+                      ✅ В наявності ({product.stockQuantity} шт.)
+                    </span>
+                  ) : (
+                    <span className="out-of-stock">
+                      ❌ Немає в наявності
+                    </span>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Size Selection */}
-            {product.sizes && product.sizes.length > 0 && (
-              <div className="size-selection">
-                <h4>Розмір:</h4>
-                <div className="size-options">
-                  {product.sizes.map(size => (
-                    <button
-                      key={size}
-                      className={`size-btn ${selectedSize === size ? 'active' : ''}`}
-                      onClick={() => setSelectedSize(size)}
-                    >
-                      {size}
-                    </button>
+              {/* Features */}
+              <div className="product-features">
+                <h3 className="features-title">
+                  <span className="title-icon">✨</span>
+                  Переваги
+                </h3>
+                <div className="features-grid">
+                  {product.features.map((feature, index) => (
+                    <div key={index} className="feature-item">
+                      <span className="feature-icon">{feature.icon}</span>
+                      <div className="feature-content">
+                        <span className="feature-title">{feature.title}</span>
+                        <span className="feature-description">{feature.description}</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Quantity */}
-            <div className="quantity-selection">
-              <h4>Кількість:</h4>
-              <div className="quantity-controls">
-                <button 
-                  className="quantity-btn"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                >
-                  −
-                </button>
-                <span className="quantity-display">{quantity}</span>
-                <button 
-                  className="quantity-btn"
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= 10}
-                >
-                  +
-                </button>
-              </div>
             </div>
-
-            {/* Stock Status */}
-            <div className={`stock-status ${product.inStock ? 'in-stock' : 'out-of-stock'}`}>
-              {product.inStock ? '✅ В наявності' : '❌ Немає в наявності'}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="product-actions">
-              <button 
-                className="add-to-cart-btn"
-                onClick={handleAddToCart}
-                disabled={!product.inStock}
-              >
-                {product.inStock ? '🛒 Додати в кошик' : '❌ Немає в наявності'}
-              </button>
-              
-              <button className="buy-now-btn">
-                ⚡ Купити зараз
-              </button>
-              
-              <button className="favorite-btn">
-                🤍 В улюблені
-              </button>
-            </div>
-
-            {/* Features */}
-            <div className="product-features">
-              <div className="feature">
-                <span className="feature-icon">🚚</span>
-                <span>Безкоштовна доставка від 1000 ₴</span>
-              </div>
-              <div className="feature">
-                <span className="feature-icon">🔒</span>
-                <span>Гарантія свіжості</span>
-              </div>
-              <div className="feature">
-                <span className="feature-icon">💳</span>
-                <span>Оплата при отриманні</span>
-              </div>
-              <div className="feature">
-                <span className="feature-icon">📞</span>
-                <span>Підтримка 24/7</span>
-              </div>
-            </div>
-
-            {/* Tags */}
-            {product.tags && product.tags.length > 0 && (
-              <div className="product-tags">
-                <h4>Теги:</h4>
-                <div className="tags">
-                  {product.tags.map(tag => (
-                    <span key={tag} className="tag">#{tag}</span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
+      </section>
 
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <section className="related-products">
-            <h2 className="section-title">🌺 Схожі товари</h2>
-            <div className="products-grid">
-              {relatedProducts.map(relatedProduct => (
-                <ProductCard
-                  key={relatedProduct.id}
-                  product={relatedProduct}
-                  onAddToCart={onAddToCart}
-                  onQuickView={handleQuickView}
-                />
-              ))}
+      {/* Product Details Tabs */}
+      <section className="product-details">
+        <div className="container">
+          <div className="tabs-container">
+            <div className="tabs-header">
+              <button 
+                className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`}
+                onClick={() => setActiveTab('description')}
+              >
+                📝 Опис
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'specifications' ? 'active' : ''}`}
+                onClick={() => setActiveTab('specifications')}
+              >
+                📊 Характеристики
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'care' ? 'active' : ''}`}
+                onClick={() => setActiveTab('care')}
+              >
+                🌿 Догляд
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`}
+                onClick={() => setActiveTab('reviews')}
+              >
+                ⭐ Відгуки ({product.reviewsCount})
+              </button>
             </div>
-          </section>
-        )}
-      </div>
+
+            <div className="tabs-content">
+              {activeTab === 'description' && (
+                <div className="tab-content description-tab">
+                  <h3>Детальний опис</h3>
+                  <div className="description-content">
+                    {product.fullDescription.split('\n').map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'specifications' && (
+                <div className="tab-content specifications-tab">
+                  <h3>Технічні характеристики</h3>
+                  <div className="specifications-grid">
+                    {product.specifications.map((spec, index) => (
+                      <div key={index} className="spec-item">
+                        <span className="spec-label">{spec.label}:</span>
+                        <span className="spec-value">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'care' && (
+                <div className="tab-content care-tab">
+                  <h3>Інструкції з догляду</h3>
+                  <div className="care-instructions">
+                    {product.careInstructions.map((instruction, index) => (
+                      <div key={index} className="care-item">
+                        {instruction}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'reviews' && (
+                <div className="tab-content reviews-tab">
+                  <h3>Відгуки покупців</h3>
+                  <div className="reviews-container">
+                    {product.reviews.map(review => (
+                      <div key={review.id} className="review-item">
+                        <div className="review-header">
+                          <div className="reviewer-info">
+                            <span className="reviewer-name">{review.name}</span>
+                            {review.verified && (
+                              <span className="verified-badge">✅ Підтверджена покупка</span>
+                            )}
+                          </div>
+                          <div className="review-rating">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={i < review.rating ? 'star filled' : 'star'}>
+                                ⭐
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="review-content">
+                          <p>{review.comment}</p>
+                        </div>
+                        <div className="review-date">
+                          {new Date(review.date).toLocaleDateString('uk-UA')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

@@ -1,275 +1,227 @@
-// API сервисы для работы с backend
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Базовая функция для HTTP запросов
-const apiRequest = async (endpoint, options = {}) => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  };
-
-  // Добавляем токен авторизации если есть
-  const token = localStorage.getItem('bloomshine-token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+class ApiService {
+  constructor() {
+    this.baseURL = API_BASE_URL;
   }
 
-  try {
-    const response = await fetch(url, config);
+  // Базовый метод для HTTP запросов
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`API запрос неудачен: ${url}`, error);
+      throw error;
     }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API Request Error:', error);
-    throw error;
   }
-};
 
-// ========== PRODUCTS API ==========
-export const productsAPI = {
-  // Получить все товары
-  getAll: (params = {}) => {
-    const queryParams = new URLSearchParams(params).toString();
-    return apiRequest(`/products?${queryParams}`);
-  },
+  // ========== PRODUCTS API ==========
 
-  // Получить товар по ID
-  getById: (id) => {
-    return apiRequest(`/products/${id}`);
-  },
-
-  // Получить товары по категории
-  getByCategory: (category, params = {}) => {
-    const queryParams = new URLSearchParams(params).toString();
-    return apiRequest(`/products/category/${category}?${queryParams}`);
-  },
-
-  // Поиск товаров
-  search: (query, params = {}) => {
-    const queryParams = new URLSearchParams({ q: query, ...params }).toString();
-    return apiRequest(`/products/search?${queryParams}`);
-  },
-
-  // Получить рекомендации
-  getRecommendations: (productId) => {
-    return apiRequest(`/products/${productId}/recommendations`);
-  },
-
-  // Получить популярные товары
-  getPopular: (limit = 8) => {
-    return apiRequest(`/products/popular?limit=${limit}`);
-  },
-
-  // Получить новинки
-  getNew: (limit = 8) => {
-    return apiRequest(`/products/new?limit=${limit}`);
-  },
-
-  // Получить товары со скидкой
-  getSale: (limit = 8) => {
-    return apiRequest(`/products/sale?limit=${limit}`);
+  // Получить рекомендуемые боксы для главной страницы
+  async getFeaturedProducts() {
+    try {
+      console.log('🌟 Запрос рекомендуемых боксов...');
+      const response = await this.request('/products/featured');
+      
+      if (response.success) {
+        console.log(`✅ Получено ${response.count} рекомендуемых боксов`);
+        return response.products;
+      } else {
+        throw new Error(response.message || 'Ошибка получения рекомендуемых боксов');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка получения featured products:', error);
+      return [];
+    }
   }
-};
 
-// ========== AUTH API ==========
-export const authAPI = {
-  // Регистрация
-  register: (userData) => {
-    return apiRequest('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
-  },
+  // Получить все боксы с фильтрацией
+  async getAllProducts(filters = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      Object.keys(filters).forEach(key => {
+        if (filters[key] !== undefined && filters[key] !== null) {
+          queryParams.append(key, filters[key]);
+        }
+      });
 
-  // Вход
-  login: (credentials) => {
-    return apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-  },
-
-  // Выход
-  logout: () => {
-    return apiRequest('/auth/logout', {
-      method: 'POST',
-    });
-  },
-
-  // Получить профиль
-  getProfile: () => {
-    return apiRequest('/auth/profile');
-  },
-
-  // Обновить профиль
-  updateProfile: (userData) => {
-    return apiRequest('/auth/profile', {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
-  },
-
-  // Восстановление пароля
-  forgotPassword: (email) => {
-    return apiRequest('/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
-  },
-
-  // Сброс пароля
-  resetPassword: (token, newPassword) => {
-    return apiRequest('/auth/reset-password', {
-      method: 'POST',
-      body: JSON.stringify({ token, newPassword }),
-    });
+      const endpoint = `/products${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await this.request(endpoint);
+      
+      if (response.success) {
+        return {
+          products: response.products,
+          pagination: response.pagination
+        };
+      } else {
+        throw new Error(response.message || 'Ошибка получения товаров');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка получения всех товаров:', error);
+      return { products: [], pagination: null };
+    }
   }
-};
 
-// ========== ORDERS API ==========
-export const ordersAPI = {
-  // Создать заказ
-  create: (orderData) => {
-    return apiRequest('/orders', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    });
-  },
-
-  // Получить заказы пользователя
-  getUserOrders: (userId) => {
-    return apiRequest(`/orders/user/${userId}`);
-  },
-
-  // Получить заказ по ID
-  getById: (id) => {
-    return apiRequest(`/orders/${id}`);
-  },
-
-  // Обновить статус заказа
-  updateStatus: (id, status) => {
-    return apiRequest(`/orders/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
-    });
-  },
-
-  // Отменить заказ
-  cancel: (id) => {
-    return apiRequest(`/orders/${id}/cancel`, {
-      method: 'PUT',
-    });
+  // Получить бокс по ID
+  async getProductById(id) {
+    try {
+      const response = await this.request(`/products/${id}`);
+      
+      if (response.success) {
+        return response.product;
+      } else {
+        throw new Error(response.message || 'Товар не найден');
+      }
+    } catch (error) {
+      console.error(`❌ Ошибка получения товара ${id}:`, error);
+      return null;
+    }
   }
-};
 
-// ========== CATEGORIES API ==========
-export const categoriesAPI = {
-  // Получить все категории
-  getAll: () => {
-    return apiRequest('/categories');
-  },
+  // Поиск боксов
+  async searchProducts(searchTerm) {
+    try {
+      if (!searchTerm || searchTerm.trim().length < 2) {
+        return [];
+      }
 
-  // Получить категорию по ID
-  getById: (id) => {
-    return apiRequest(`/categories/${id}`);
+      const response = await this.request(`/products/search?q=${encodeURIComponent(searchTerm)}`);
+      
+      if (response.success) {
+        return response.products;
+      } else {
+        throw new Error(response.message || 'Ошибка поиска');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка поиска товаров:', error);
+      return [];
+    }
   }
-};
 
-// ========== REVIEWS API ==========
-export const reviewsAPI = {
-  // Получить отзывы товара
-  getByProductId: (productId) => {
-    return apiRequest(`/products/${productId}/reviews`);
-  },
-
-  // Создать отзыв
-  create: (reviewData) => {
-    return apiRequest('/reviews', {
-      method: 'POST',
-      body: JSON.stringify(reviewData),
-    });
-  },
-
-  // Обновить отзыв
-  update: (id, reviewData) => {
-    return apiRequest(`/reviews/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(reviewData),
-    });
-  },
-
-  // Удалить отзыв
-  delete: (id) => {
-    return apiRequest(`/reviews/${id}`, {
-      method: 'DELETE',
-    });
+  // Получить похожие боксы
+  async getSimilarProducts(productId, limit = 4) {
+    try {
+      const response = await this.request(`/products/${productId}/similar?limit=${limit}`);
+      
+      if (response.success) {
+        return response.products;
+      } else {
+        throw new Error(response.message || 'Ошибка получения похожих товаров');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка получения похожих товаров:', error);
+      return [];
+    }
   }
-};
 
-// ========== WISHLIST API ==========
-export const wishlistAPI = {
-  // Получить список желаний
-  get: () => {
-    return apiRequest('/wishlist');
-  },
+  // Получить боксы по категории
+  async getProductsByCategory(category, limit = 12) {
+    try {
+      const response = await this.request(`/products/category/${category}?limit=${limit}`);
+      
+      if (response.success) {
+        return response.products;
+      } else {
+        throw new Error(response.message || 'Ошибка получения товаров по категории');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка получения товаров по категории:', error);
+      return [];
+    }
+  }
 
-  // Добавить в список желаний
-  add: (productId) => {
-    return apiRequest('/wishlist', {
-      method: 'POST',
-      body: JSON.stringify({ productId }),
-    });
-  },
+  // Обновить рейтинг бокса
+  async updateProductRating(productId, rating) {
+    try {
+      const response = await this.request(`/products/${productId}/rating`, {
+        method: 'POST',
+        body: JSON.stringify({ rating })
+      });
+      
+      if (response.success) {
+        return response.rating;
+      } else {
+        throw new Error(response.message || 'Ошибка обновления рейтинга');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка обновления рейтинга:', error);
+      throw error;
+    }
+  }
 
-  // Удалить из списка желаний
-  remove: (productId) => {
-    return apiRequest(`/wishlist/${productId}`, {
-      method: 'DELETE',
-    });
+  // ========== HEALTH CHECK ==========
+  async checkHealth() {
+    try {
+      const response = await fetch(`${this.baseURL.replace('/api', '')}/health`);
+      return await response.json();
+    } catch (error) {
+      console.error('❌ Ошибка проверки здоровья API:', error);
+      return { status: 'ERROR' };
+    }
   }
-};
 
-// ========== UTILS ==========
-export const handleApiError = (error) => {
-  if (error.message.includes('401')) {
-    // Неавторизован - удаляем токен
-    localStorage.removeItem('bloomshine-token');
-    localStorage.removeItem('bloomshine-user');
-    window.location.href = '/';
-    return 'Сессия истекла. Пожалуйста, войдите снова.';
-  }
-  
-  if (error.message.includes('403')) {
-    return 'Недостаточно прав для выполнения операции.';
-  }
-  
-  if (error.message.includes('404')) {
-    return 'Запрашиваемый ресурс не найден.';
-  }
-  
-  if (error.message.includes('500')) {
-    return 'Ошибка сервера. Попробуйте позже.';
-  }
-  
-  return 'Произошла ошибка. Проверьте подключение к интернету.';
-};
+  // ========== UTILITIES ==========
 
-// Экспорт всех API
-export default {
-  products: productsAPI,
-  auth: authAPI,
-  orders: ordersAPI,
-  categories: categoriesAPI,
-  reviews: reviewsAPI,
-  wishlist: wishlistAPI,
-  handleError: handleApiError
-};
+  // Проверить доступность API
+  async isApiAvailable() {
+    try {
+      const health = await this.checkHealth();
+      return health.status === 'OK';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Получить статистику
+  async getStats() {
+    try {
+      const response = await this.request('/products/stats');
+      
+      if (response.success) {
+        return response.stats;
+      } else {
+        throw new Error(response.message || 'Ошибка получения статистики');
+      }
+    } catch (error) {
+      console.error('❌ Ошибка получения статистики:', error);
+      return null;
+    }
+  }
+}
+
+// Создаем и экспортируем экземпляр
+const apiService = new ApiService();
+
+export default apiService;
+
+// Экспорт отдельных методов для удобства
+export const {
+  getFeaturedProducts,
+  getAllProducts,
+  getProductById,
+  searchProducts,
+  getSimilarProducts,
+  getProductsByCategory,
+  updateProductRating,
+  checkHealth,
+  isApiAvailable,
+  getStats
+} = apiService;

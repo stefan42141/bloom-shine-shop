@@ -1,74 +1,103 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/pages/Cart.css';
 
-const CartPage = ({ 
-  cartItems, 
-  onUpdateQuantity, 
-  onRemoveItem, 
-  onClearCart 
-}) => {
+const Cart = ({ cartItems, onUpdateQuantity, onRemoveFromCart, onClearCart }) => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
-  const [discount, setDiscount] = useState(0);
-  const [promoMessage, setPromoMessage] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [showPromoInput, setShowPromoInput] = useState(false);
 
-  // Подсчет общей суммы
-  const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => 
-      total + (item.price * item.quantity), 0
-    );
+  // Промокоды
+  const promoCodes = {
+    'BLOOM10': { discount: 0.10, description: 'Знижка 10%' },
+    'LUXURY20': { discount: 0.20, description: 'Знижка 20% на преміум' },
+    'NEWUSER': { discount: 0.15, description: 'Знижка 15% для нових клієнтів' },
+    'SPRING25': { discount: 0.25, description: 'Весняна знижка 25%' }
   };
 
-  const calculateDiscount = () => {
-    return (calculateSubtotal() * discount) / 100;
-  };
+  // Подсчет итогов
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.finalPrice || item.price) * item.quantity, 0);
+  const shipping = subtotal > 5000 ? 0 : 299; // Бесплатная доставка от 5000 грн
+  const promoDiscount = appliedPromo ? subtotal * appliedPromo.discount : 0;
+  const total = subtotal + shipping - promoDiscount;
 
-  const calculateTotal = () => {
-    return calculateSubtotal() - calculateDiscount();
-  };
-
-  const handlePromoCode = () => {
-    if (promoCode === 'BLOOM10') {
-      setDiscount(10);
-      setPromoMessage('🎉 Промокод застосовано! Знижка 10%');
-    } else if (promoCode === 'PREMIUM15') {
-      setDiscount(15);
-      setPromoMessage('🎉 Промокод застосовано! Знижка 15%');
-    } else if (promoCode === 'FIRST20') {
-      setDiscount(20);
-      setPromoMessage('🎉 Промокод застосовано! Знижка 20%');
+  const handleApplyPromo = () => {
+    const promo = promoCodes[promoCode.toUpperCase()];
+    if (promo) {
+      setAppliedPromo({
+        code: promoCode.toUpperCase(),
+        ...promo
+      });
+      setPromoCode('');
+      setShowPromoInput(false);
     } else {
-      setDiscount(0);
-      setPromoMessage('❌ Невірний промокод');
+      alert('Невірний промокод');
     }
   };
 
-  const handleQuantityChange = (itemId, newQuantity) => {
-    if (newQuantity > 0 && newQuantity <= 10) {
-      onUpdateQuantity(itemId, newQuantity);
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+  };
+
+  const handleProceedToCheckout = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      navigate('/checkout');
+    } catch (error) {
+      console.error('Помилка переходу до оформлення:', error);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleContinueShopping = () => {
-    navigate('/catalog');
-  };
-
-  const handleCheckout = () => {
-    navigate('/checkout');
   };
 
   if (cartItems.length === 0) {
     return (
-      <div className="cart-page empty">
+      <div className="cart-page">
         <div className="container">
           <div className="empty-cart">
-            <div className="empty-cart-icon">🌸</div>
-            <h1>Ваш кошик порожній</h1>
-            <p>Додайте преміальні квіткові бокси для створення магічних моментів</p>
-            <Link to="/catalog" className="continue-shopping-btn">
-              🌺 Перейти до каталогу
-            </Link>
+            <div className="empty-cart-content">
+              <div className="empty-icon">🛒</div>
+              <h2 className="empty-title">Ваш кошик порожній</h2>
+              <p className="empty-description">
+                Додайте товари до кошика, щоб продовжити покупки
+              </p>
+              <div className="empty-actions">
+                <button 
+                  className="luxury-button"
+                  onClick={() => navigate('/catalog')}
+                >
+                  <span className="button-icon">🌸</span>
+                  Почати покупки
+                </button>
+              </div>
+              
+              {/* Рекомендации */}
+              <div className="recommendations">
+                <h3 className="recommendations-title">Рекомендовані товари</h3>
+                <div className="recommendations-grid">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="recommendation-card">
+                      <div className="recommendation-image">
+                        <img 
+                          src={`https://via.placeholder.com/200x200/2a2a2a/d4af37?text=🌸+${i}`}
+                          alt={`Рекомендація ${i}`}
+                        />
+                      </div>
+                      <div className="recommendation-info">
+                        <h4>Luxury Box #{i}</h4>
+                        <p className="recommendation-price">2999 ₴</p>
+                        <button className="recommendation-btn">
+                          Додати до кошика
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -77,218 +106,345 @@ const CartPage = ({
 
   return (
     <div className="cart-page">
-      <div className="container">
-        {/* Header */}
-        <div className="cart-header">
-          <h1 className="page-title">🛒 Ваш кошик</h1>
-          <p className="items-count">
-            {cartItems.length} {cartItems.length === 1 ? 'товар' : 'товарів'}
-          </p>
+      {/* Hero секция */}
+      <section className="cart-hero">
+        <div className="floating-elements">
+          <div className="floating-flower">🌸</div>
+          <div className="floating-star">✨</div>
+          <div className="floating-diamond">💎</div>
         </div>
+        
+        <div className="container">
+          <div className="cart-hero-content">
+            <div className="luxury-badge">
+              <span className="badge-icon">🛒</span>
+              SHOPPING CART
+            </div>
+            <h1 className="cart-title">Кошик покупок</h1>
+            <p className="cart-subtitle">
+              Перегляньте обрані товари та оформіть замовлення
+            </p>
+            
+            <div className="cart-stats">
+              <div className="stat-item">
+                <span className="stat-number">{cartItems.length}</span>
+                <span className="stat-label">Товарів в кошику</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{total.toLocaleString()} ₴</span>
+                <span className="stat-label">Загальна сума</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{shipping === 0 ? 'Безкоштовно' : '299 ₴'}</span>
+                <span className="stat-label">Доставка</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <div className="cart-content">
-          {/* Cart Items */}
-          <div className="cart-items-section">
-            <div className="cart-items">
-              {cartItems.map(item => (
-                <div key={`${item.id}-${item.selectedSize || 'default'}`} className="cart-item">
-                  <div className="item-image">
-                    <img 
-                      src={item.images ? item.images[0] : item.image} 
-                      alt={item.name}
-                      onError={(e) => {
-                        e.target.src = '/images/placeholder-box.jpg';
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="item-details">
-                    <h3 className="item-name">{item.name}</h3>
-                    <p className="item-category">{item.category}</p>
-                    
-                    {item.selectedSize && (
-                      <p className="item-size">Розмір: {item.selectedSize}</p>
-                    )}
-                    
-                    <div className="item-price">
-                      {item.oldPrice && (
-                        <span className="old-price">{item.oldPrice} ₴</span>
+      {/* Основной контент */}
+      <section className="cart-content">
+        <div className="container">
+          <div className="cart-grid">
+            {/* Товары в корзине */}
+            <div className="cart-items-section">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <span className="title-icon">📦</span>
+                  Обрані товари
+                </h2>
+                <button 
+                  className="clear-cart-btn"
+                  onClick={onClearCart}
+                  title="Очистити кошик"
+                >
+                  <span className="clear-icon">🗑️</span>
+                  Очистити все
+                </button>
+              </div>
+
+              <div className="cart-items">
+                {cartItems.map(item => (
+                  <div key={`${item.id}-${item.selectedSize}`} className="cart-item">
+                    <div className="item-image-container">
+                      <img 
+                        src={item.images?.[0] || 'https://via.placeholder.com/150x150/2a2a2a/d4af37?text=🌸'}
+                        alt={item.name}
+                        className="item-image"
+                      />
+                      {item.luxury && (
+                        <div className="luxury-badge-item">
+                          <span className="badge-icon">👑</span>
+                          Luxury
+                        </div>
                       )}
-                      <span className="current-price">{item.price} ₴</span>
+                    </div>
+
+                    <div className="item-details">
+                      <div className="item-header">
+                        <h3 className="item-name">{item.name}</h3>
+                        <button 
+                          className="remove-item-btn"
+                          onClick={() => onRemoveFromCart(item.id, item.selectedSize)}
+                          title="Видалити товар"
+                        >
+                          <span className="remove-icon">❌</span>
+                        </button>
+                      </div>
+
+                      <div className="item-meta">
+                        <span className="item-category">{item.category}</span>
+                        {item.selectedSize && (
+                          <span className="item-size">
+                            Розмір: {item.selectedSize}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="item-actions">
+                        <div className="quantity-controls">
+                          <button 
+                            className="quantity-btn decrease"
+                            onClick={() => onUpdateQuantity(item.id, item.selectedSize, Math.max(1, item.quantity - 1))}
+                            disabled={item.quantity <= 1}
+                          >
+                            -
+                          </button>
+                          <span className="quantity-value">{item.quantity}</span>
+                          <button 
+                            className="quantity-btn increase"
+                            onClick={() => onUpdateQuantity(item.id, item.selectedSize, item.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="item-pricing">
+                          {item.oldPrice && (
+                            <span className="item-old-price">
+                              {(item.oldPrice * item.quantity).toLocaleString()} ₴
+                            </span>
+                          )}
+                          <span className="item-price">
+                            {((item.finalPrice || item.price) * item.quantity).toLocaleString()} ₴
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Продолжить покупки */}
+              <div className="continue-shopping">
+                <button 
+                  className="continue-btn luxury-button-outline"
+                  onClick={() => navigate('/catalog')}
+                >
+                  <span className="continue-icon">⬅️</span>
+                  Продовжити покупки
+                </button>
+              </div>
+            </div>
+
+            {/* Сводка заказа */}
+            <div className="cart-summary">
+              <div className="summary-card">
+                <div className="summary-header">
+                  <h3 className="summary-title">
+                    <span className="title-icon">📊</span>
+                    Сума замовлення
+                  </h3>
+                </div>
+
+                <div className="summary-content">
+                  {/* Промокод */}
+                  <div className="promo-section">
+                    {!showPromoInput && !appliedPromo && (
+                      <button 
+                        className="show-promo-btn"
+                        onClick={() => setShowPromoInput(true)}
+                      >
+                        <span className="promo-icon">🎟️</span>
+                        Є промокод?
+                      </button>
+                    )}
+
+                    {showPromoInput && (
+                      <div className="promo-input-group">
+                        <input
+                          type="text"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value)}
+                          placeholder="Введіть промокод"
+                          className="promo-input"
+                        />
+                        <button 
+                          className="apply-promo-btn"
+                          onClick={handleApplyPromo}
+                        >
+                          Застосувати
+                        </button>
+                        <button 
+                          className="cancel-promo-btn"
+                          onClick={() => {
+                            setShowPromoInput(false);
+                            setPromoCode('');
+                          }}
+                        >
+                          ❌
+                        </button>
+                      </div>
+                    )}
+
+                    {appliedPromo && (
+                      <div className="applied-promo">
+                        <div className="promo-info">
+                          <span className="promo-code">{appliedPromo.code}</span>
+                          <span className="promo-description">{appliedPromo.description}</span>
+                        </div>
+                        <button 
+                          className="remove-promo-btn"
+                          onClick={handleRemovePromo}
+                        >
+                          ❌
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Разбивка цен */}
+                  <div className="price-breakdown">
+                    <div className="price-row">
+                      <span className="price-label">Товари ({cartItems.length})</span>
+                      <span className="price-value">{subtotal.toLocaleString()} ₴</span>
+                    </div>
+
+                    <div className="price-row">
+                      <span className="price-label">Доставка</span>
+                      <span className={`price-value ${shipping === 0 ? 'free' : ''}`}>
+                        {shipping === 0 ? 'Безкоштовно' : `${shipping} ₴`}
+                      </span>
+                    </div>
+
+                    {appliedPromo && (
+                      <div className="price-row discount">
+                        <span className="price-label">
+                          Знижка ({appliedPromo.code})
+                        </span>
+                        <span className="price-value discount">
+                          -{promoDiscount.toLocaleString()} ₴
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="price-row total">
+                      <span className="price-label">До сплати</span>
+                      <span className="price-value">{total.toLocaleString()} ₴</span>
                     </div>
                   </div>
 
-                  <div className="item-controls">
-                    <div className="quantity-controls">
-                      <button 
-                        className="quantity-btn"
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        −
-                      </button>
-                      <span className="quantity">{item.quantity}</span>
-                      <button 
-                        className="quantity-btn"
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        disabled={item.quantity >= 10}
-                      >
-                        +
-                      </button>
+                  {/* Информация о доставке */}
+                  {shipping > 0 && (
+                    <div className="delivery-info">
+                      <div className="delivery-progress">
+                        <div className="progress-bar">
+                          <div 
+                            className="progress-fill"
+                            style={{ width: `${(subtotal / 5000) * 100}%` }}
+                          ></div>
+                        </div>
+                        <p className="progress-text">
+                          Додайте ще {(5000 - subtotal).toLocaleString()} ₴ для безкоштовної доставки
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div className="item-total">
-                      {(item.price * item.quantity).toFixed(0)} ₴
-                    </div>
-                    
+                  )}
+
+                  {/* Кнопка оформления */}
+                  <div className="checkout-actions">
                     <button 
-                      className="remove-btn"
-                      onClick={() => onRemoveItem(item.id)}
-                      title="Видалити товар"
+                      className={`checkout-btn luxury-button ${isLoading ? 'loading' : ''}`}
+                      onClick={handleProceedToCheckout}
+                      disabled={isLoading}
                     >
-                      🗑️
+                      {isLoading ? (
+                        <>
+                          <span className="loading-spinner">⏳</span>
+                          Переходимо...
+                        </>
+                      ) : (
+                        <>
+                          <span className="checkout-icon">🚀</span>
+                          Оформити замовлення
+                        </>
+                      )}
                     </button>
-                  </div>
-                </div>
-              ))}
-            </div>
 
-            {/* Cart Actions */}
-            <div className="cart-actions">
-              <button 
-                className="continue-shopping-btn"
-                onClick={handleContinueShopping}
-              >
-                ← Продовжити покупки
-              </button>
-              
-              <button 
-                className="clear-cart-btn"
-                onClick={onClearCart}
-              >
-                🗑️ Очистити кошик
-              </button>
-            </div>
-          </div>
-
-          {/* Cart Summary */}
-          <div className="cart-summary">
-            <div className="summary-card">
-              <h3 className="summary-title">Разом до сплати</h3>
-              
-              {/* Promo Code */}
-              <div className="promo-section">
-                <div className="promo-input-group">
-                  <input
-                    type="text"
-                    placeholder="Введіть промокод"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    className="promo-input"
-                  />
-                  <button 
-                    className="promo-btn"
-                    onClick={handlePromoCode}
-                  >
-                    ✨ Застосувати
-                  </button>
-                </div>
-                
-                {promoMessage && (
-                  <div className={`promo-message ${discount > 0 ? 'success' : 'error'}`}>
-                    {promoMessage}
+                    <div className="security-info">
+                      <div className="security-badges">
+                        <div className="security-badge">
+                          <span className="security-icon">🔒</span>
+                          <span>Захищена оплата</span>
+                        </div>
+                        <div className="security-badge">
+                          <span className="security-icon">🚚</span>
+                          <span>Швидка доставка</span>
+                        </div>
+                        <div className="security-badge">
+                          <span className="security-icon">🎯</span>
+                          <span>Гарантія якості</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-                
-                <div className="promo-suggestions">
-                  <p>Доступні промокоди:</p>
-                  <ul>
-                    <li><code>BLOOM10</code> - знижка 10%</li>
-                    <li><code>PREMIUM15</code> - знижка 15%</li>
-                    <li><code>FIRST20</code> - знижка 20%</li>
-                  </ul>
                 </div>
               </div>
 
-              {/* Summary Details */}
-              <div className="summary-details">
-                <div className="summary-row">
-                  <span>Підсумок ({cartItems.length} товарів):</span>
-                  <span>{calculateSubtotal().toFixed(0)} ₴</span>
-                </div>
-                
-                <div className="summary-row">
-                  <span>Доставка:</span>
-                  <span className="free">
-                    {calculateSubtotal() >= 1000 ? 'Безкоштовно' : '150 ₴'}
-                  </span>
-                </div>
-                
-                {discount > 0 && (
-                  <div className="summary-row discount">
-                    <span>Знижка ({discount}%):</span>
-                    <span>-{calculateDiscount().toFixed(0)} ₴</span>
+              {/* Преимущества */}
+              <div className="benefits-card">
+                <h4 className="benefits-title">
+                  <span className="title-icon">✨</span>
+                  Переваги замовлення
+                </h4>
+                <div className="benefits-list">
+                  <div className="benefit-item">
+                    <span className="benefit-icon">🌹</span>
+                    <div className="benefit-content">
+                      <span className="benefit-title">Преміальна якість</span>
+                      <span className="benefit-description">Тільки найкращі квіти</span>
+                    </div>
                   </div>
-                )}
-                
-                <div className="summary-row total">
-                  <span>До сплати:</span>
-                  <span>
-                    {(calculateTotal() + (calculateSubtotal() >= 1000 ? 0 : 150)).toFixed(0)} ₴
-                  </span>
-                </div>
-              </div>
-
-              {/* Checkout Button */}
-              <button 
-                className="checkout-btn"
-                onClick={handleCheckout}
-              >
-                💳 Оформити замовлення
-              </button>
-
-              {/* Security Info */}
-              <div className="security-info">
-                <div className="security-item">
-                  <span className="security-icon">🔒</span>
-                  <span>Безпечна оплата</span>
-                </div>
-                <div className="security-item">
-                  <span className="security-icon">🚚</span>
-                  <span>Швидка доставка</span>
-                </div>
-                <div className="security-item">
-                  <span className="security-icon">↩️</span>
-                  <span>Легке повернення</span>
+                  <div className="benefit-item">
+                    <span className="benefit-icon">📦</span>
+                    <div className="benefit-content">
+                      <span className="benefit-title">Розкішна упаковка</span>
+                      <span className="benefit-description">Ексклюзивний дизайн</span>
+                    </div>
+                  </div>
+                  <div className="benefit-item">
+                    <span className="benefit-icon">⚡</span>
+                    <div className="benefit-content">
+                      <span className="benefit-title">Швидка доставка</span>
+                      <span className="benefit-description">До 2 годин в Києві</span>
+                    </div>
+                  </div>
+                  <div className="benefit-item">
+                    <span className="benefit-icon">🎯</span>
+                    <div className="benefit-content">
+                      <span className="benefit-title">Гарантія свіжості</span>
+                      <span className="benefit-description">7 днів гарантії</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Features */}
-        <div className="cart-features">
-          <div className="feature-card">
-            <div className="feature-icon">🌟</div>
-            <h4>Преміальна якість</h4>
-            <p>Тільки найкращі квіти від перевірених постачальників</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">🚚</div>
-            <h4>Швидка доставка</h4>
-            <p>Доставка по Києву за 2 години, по Україні - наступний день</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">💎</div>
-            <h4>Індивідуальний підхід</h4>
-            <p>Створюємо бокси за вашими побажаннями та емоціями</p>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 };
 
-export default CartPage;
+export default Cart;

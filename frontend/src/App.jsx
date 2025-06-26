@@ -14,9 +14,8 @@ import Product from './pages/Product';
 import CartPage from './pages/Cart';
 import Checkout from './pages/Checkout';
 
-// Стили
-import './styles/globals.css';
-import './styles/variables.css';
+import './styles/variables.css';    // 1. Сначала переменные
+import './styles/globals.css';      // 2. Потом глобальные стили
 
 const App = () => {
   // Состояния приложения

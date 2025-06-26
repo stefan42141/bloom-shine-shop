@@ -1,589 +1,430 @@
 const Product = require('../models/Product');
-const User = require('../models/User');
 
-// @desc    Получить все товары с фильтрацией и сортировкой
-// @route   GET /api/products
-// @access  Public
-const getProducts = async (req, res) => {
+// ========== ПОЛУЧИТЬ РЕКОМЕНДУЕМЫЕ БОКСЫ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ ==========
+exports.getFeaturedProducts = async (req, res) => {
+  try {
+    console.log('🌟 Запрос рекомендуемых боксов для главной страницы...');
+    
+    // Получаем 5 featured боксов
+    const featuredBoxes = await Product.getFeatured(5);
+    
+    if (!featuredBoxes || featuredBoxes.length === 0) {
+      console.log('⚠️ Рекомендуемые боксы не найдены');
+      return res.status(200).json({
+        success: true,
+        message: 'Немає рекомендованих ароматичних боксів',
+        products: [],
+        count: 0
+      });
+    }
+
+    console.log(`✅ Найдено ${featuredBoxes.length} рекомендуемых боксов`);
+    
+    // Форматируем данные для frontend
+    const formattedBoxes = featuredBoxes.map(box => ({
+      _id: box._id,
+      name: box.name,
+      category: box.category,
+      shortDescription: box.shortDescription,
+      price: box.price,
+      oldPrice: box.oldPrice,
+      discount: box.discount,
+      images: {
+        main: box.images.main,
+        thumbnail: box.images.thumbnail || box.images.main
+      },
+      rating: box.rating.average,
+      reviewsCount: box.reviewsCount,
+      badge: box.badge,
+      luxury: box.luxury,
+      featured: box.featured,
+      inStock: box.inStock,
+      // Специфичные поля для аромабоксов
+      aromaticProfile: box.specifications?.aromaticProfile,
+      mood: box.specifications?.mood,
+      ingredients: box.specifications?.composition
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: formattedBoxes.length,
+      products: formattedBoxes
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка получения рекомендуемых боксов:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка сервера при отриманні рекомендованих боксів',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// ========== ПОЛУЧИТЬ ВСЕ БОКСЫ С ФИЛЬТРАЦИЕЙ ==========
+exports.getAllProducts = async (req, res) => {
   try {
     const {
       page = 1,
       limit = 12,
       category,
-      subcategory,
       minPrice,
       maxPrice,
-      search,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      occasion,
+      search,
+      luxury,
       inStock,
-      featured,
-      trending,
-      bestSeller,
-      newArrival,
-      rating,
-      colors,
-      flowerTypes
+      aromaticFamily // Новый фильтр для ароматических семей
     } = req.query;
 
-    // Построение фильтра
-    const filter = { 'availability.isAvailable': true };
+    console.log('📋 Запрос всех боксов с фильтрами:', req.query);
+
+    // Настройка фильтров
+    const filters = {};
     
-    // Фильтр по категории
-    if (category) {
-      filter.category = category;
+    if (category && category !== 'all') {
+      filters.category = category;
     }
     
-    // Фильтр по подкатегории
-    if (subcategory) {
-      filter.subcategory = subcategory;
-    }
-    
-    // Фильтр по цене
     if (minPrice || maxPrice) {
-      filter['price.current'] = {};
-      if (minPrice) filter['price.current'].$gte = Number(minPrice);
-      if (maxPrice) filter['price.current'].$lte = Number(maxPrice);
+      filters.minPrice = minPrice ? Number(minPrice) : undefined;
+      filters.maxPrice = maxPrice ? Number(maxPrice) : undefined;
     }
     
-    // Поиск по тексту
-    if (search) {
-      filter.$text = { $search: search };
+    if (luxury !== undefined) {
+      filters.luxury = luxury === 'true';
     }
     
-    // Фильтр по поводу
-    if (occasion) {
-      filter['specifications.occasion'] = { $in: occasion.split(',') };
-    }
-    
-    // Фильтр по наличию
-    if (inStock === 'true') {
-      filter['inventory.inStock'] = { $gt: 0 };
-    }
-    
-    // Специальные фильтры
-    if (featured === 'true') filter.featured = true;
-    if (trending === 'true') filter.trending = true;
-    if (bestSeller === 'true') filter.bestSeller = true;
-    if (newArrival === 'true') filter.newArrival = true;
-    
-    // Фильтр по рейтингу
-    if (rating) {
-      filter['ratings.average'] = { $gte: Number(rating) };
-    }
-    
-    // Фильтр по цветам
-    if (colors) {
-      filter['specifications.colors'] = { $in: colors.split(',') };
-    }
-    
-    // Фильтр по типам цветов
-    if (flowerTypes) {
-      filter['specifications.flowerTypes'] = { $in: flowerTypes.split(',') };
+    if (inStock !== undefined) {
+      filters.inStock = inStock === 'true';
     }
 
-    // Построение сортировки
-    const sort = {};
-    if (search) {
-      sort.score = { $meta: 'textScore' };
-    }
+    // Настройка сортировки
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Настройка пагинации
+    const skip = (Number(page) - 1) * Number(limit);
+    const options = {
+      sort: sortOptions,
+      skip,
+      limit: Number(limit)
+    };
+
+    let products;
     
-    switch (sortBy) {
-      case 'price-asc':
-        sort['price.current'] = 1;
-        break;
-      case 'price-desc':
-        sort['price.current'] = -1;
-        break;
-      case 'rating':
-        sort['ratings.average'] = -1;
-        break;
-      case 'popularity':
-        sort['sales.totalSold'] = -1;
-        break;
-      case 'newest':
-        sort.createdAt = -1;
-        break;
-      case 'oldest':
-        sort.createdAt = 1;
-        break;
-      case 'name':
-        sort.name = sortOrder === 'desc' ? -1 : 1;
-        break;
-      default:
-        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    // Поиск или обычный запрос
+    if (search && search.trim()) {
+      products = await Product.search(search.trim());
+      // Применяем дополнительные фильтры к результатам поиска
+      if (filters.category) {
+        products = products.filter(p => p.category === filters.category);
+      }
+      if (filters.luxury !== undefined) {
+        products = products.filter(p => p.luxury === filters.luxury);
+      }
+      // Ручная пагинация для поиска
+      products = products.slice(skip, skip + Number(limit));
+    } else {
+      products = await Product.getAll(filters, options);
     }
 
-    const skip = (page - 1) * limit;
+    // Получаем общее количество для пагинации
+    const totalProducts = await Product.getAll(filters);
+    const totalPages = Math.ceil(totalProducts.length / Number(limit));
 
-    // Получение товаров
-    const products = await Product.find(filter)
-      .select('-reviews') // Исключаем отзывы для списка
-      .sort(sort)
-      .skip(skip)
-      .limit(Number(limit))
-      .lean();
-
-    // Подсчет общего количества
-    const total = await Product.countDocuments(filter);
-
-    // Получение доступных фильтров
-    const availableFilters = await getAvailableFilters(filter);
+    console.log(`✅ Найдено ${products.length} боксов из ${totalProducts.length}`);
 
     res.status(200).json({
       success: true,
       products,
       pagination: {
         currentPage: Number(page),
-        totalPages: Math.ceil(total / limit),
-        totalProducts: total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1,
+        totalPages,
+        totalProducts: totalProducts.length,
+        hasNext: Number(page) < totalPages,
+        hasPrev: Number(page) > 1,
         limit: Number(limit)
       },
-      filters: availableFilters,
-      appliedFilters: {
+      filters: {
         category,
-        subcategory,
-        minPrice,
-        maxPrice,
-        search,
-        occasion,
-        inStock,
-        rating,
-        colors,
-        flowerTypes
+        minPrice: Number(minPrice) || 0,
+        maxPrice: Number(maxPrice) || 999999,
+        luxury,
+        inStock
       }
     });
+
   } catch (error) {
-    console.error('Ошибка получения товаров:', error);
-    res.status(500).json({ 
+    console.error('❌ Ошибка получения боксов:', error.message);
+    res.status(500).json({
       success: false,
-      message: 'Ошибка получения товаров' 
+      message: 'Помилка сервера при отриманні боксів'
     });
   }
 };
 
-// Вспомогательная функция для получения доступных фильтров
-const getAvailableFilters = async (baseFilter) => {
+// ========== ПОЛУЧИТЬ БОКС ПО ID ==========
+exports.getProductById = async (req, res) => {
   try {
-    const pipeline = [
-      { $match: baseFilter },
-      {
-        $group: {
-          _id: null,
-          categories: { $addToSet: '$category' },
-          subcategories: { $addToSet: '$subcategory' },
-          occasions: { $addToSet: '$specifications.occasion' },
-          colors: { $addToSet: '$specifications.colors' },
-          flowerTypes: { $addToSet: '$specifications.flowerTypes' },
-          minPrice: { $min: '$price.current' },
-          maxPrice: { $max: '$price.current' },
-          avgRating: { $avg: '$ratings.average' }
-        }
-      }
-    ];
+    const { id } = req.params;
+    console.log(`🔍 Запрос бокса по ID: ${id}`);
 
-    const [filters] = await Product.aggregate(pipeline);
-    
-    return {
-      categories: filters?.categories?.filter(Boolean) || [],
-      subcategories: filters?.subcategories?.filter(Boolean) || [],
-      occasions: filters?.occasions?.flat()?.filter(Boolean) || [],
-      colors: filters?.colors?.flat()?.filter(Boolean) || [],
-      flowerTypes: filters?.flowerTypes?.flat()?.filter(Boolean) || [],
-      priceRange: {
-        min: filters?.minPrice || 0,
-        max: filters?.maxPrice || 0
-      }
-    };
-  } catch (error) {
-    console.error('Ошибка получения фильтров:', error);
-    return {};
-  }
-};
-
-// @desc    Получить товар по ID или slug
-// @route   GET /api/products/:identifier
-// @access  Public
-const getProductById = async (req, res) => {
-  try {
-    const { identifier } = req.params;
-    
-    // Определяем, это ID или slug
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(identifier);
-    const query = isObjectId ? { _id: identifier } : { slug: identifier };
-    
-    const product = await Product.findOne(query)
-      .populate('reviews.user', 'name avatar')
-      .populate('createdBy', 'name');
+    const product = await Product.getById(id);
 
     if (!product) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Товар не найден' 
+        message: 'Ароматичний бокс не знайдено'
       });
     }
 
-    // Получение похожих товаров
-    const relatedProducts = await Product.find({
-      _id: { $ne: product._id },
-      category: product.category,
-      'availability.isAvailable': true
-    })
-    .select('name price images.main ratings slug')
-    .limit(4)
-    .lean();
-
-    // Увеличение счетчика просмотров (если нужно)
-    // await Product.findByIdAndUpdate(product._id, { $inc: { views: 1 } });
+    console.log(`✅ Найден бокс: ${product.name}`);
 
     res.status(200).json({
       success: true,
-      product,
-      relatedProducts
-    });
-  } catch (error) {
-    console.error('Ошибка получения товара:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Ошибка получения товара' 
-    });
-  }
-};
-
-// @desc    Создать новый товар
-// @route   POST /api/products
-// @access  Private/Admin
-const createProduct = async (req, res) => {
-  try {
-    // Добавляем ID создателя
-    req.body.createdBy = req.user.id;
-    
-    const product = await Product.create(req.body);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Товар создан успешно',
       product
     });
+
   } catch (error) {
-    console.error('Ошибка создания товара:', error);
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
+    console.error('❌ Ошибка получения бокса:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка сервера при отриманні бокса'
+    });
+  }
+};
+
+// ========== ПОЛУЧИТЬ ПОХОЖИЕ БОКСЫ ==========
+exports.getSimilarProducts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit = 4 } = req.query;
+
+    console.log(`🔄 Запрос похожих боксов для ID: ${id}`);
+
+    const similarProducts = await Product.getSimilar(id, Number(limit));
+
+    res.status(200).json({
+      success: true,
+      products: similarProducts,
+      count: similarProducts.length
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка получения похожих боксов:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка отримання схожих боксів'
+    });
+  }
+};
+
+// ========== ПОИСК БОКСОВ ==========
+exports.searchProducts = async (req, res) => {
+  try {
+    const { q: searchTerm } = req.query;
+
+    if (!searchTerm || searchTerm.trim().length < 2) {
       return res.status(400).json({
         success: false,
-        message: messages[0] || 'Ошибка валидации данных'
+        message: 'Пошуковий запит повинен містити мінімум 2 символи'
       });
     }
 
-    res.status(500).json({ 
+    console.log(`🔍 Поиск боксов: "${searchTerm}"`);
+
+    const searchResults = await Product.search(searchTerm.trim());
+
+    res.status(200).json({
+      success: true,
+      products: searchResults,
+      count: searchResults.length,
+      searchTerm: searchTerm.trim()
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка поиска боксов:', error.message);
+    res.status(500).json({
       success: false,
-      message: 'Ошибка создания товара' 
+      message: 'Помилка пошуку боксів'
     });
   }
 };
 
-// @desc    Обновить товар
-// @route   PUT /api/products/:id
-// @access  Private/Admin
-const updateProduct = async (req, res) => {
+// ========== ПОЛУЧИТЬ БОКСЫ ПО КАТЕГОРИИ ==========
+exports.getProductsByCategory = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const { category } = req.params;
+    const { limit = 12 } = req.query;
 
-    if (!product) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Товар не найден' 
-      });
-    }
+    console.log(`📦 Запрос боксов по категории: ${category}`);
+
+    const products = await Product.getByCategory(category, Number(limit));
 
     res.status(200).json({
       success: true,
-      message: 'Товар обновлен успешно',
-      product
+      products,
+      count: products.length,
+      category
     });
+
   } catch (error) {
-    console.error('Ошибка обновления товара:', error);
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
+    console.error('❌ Ошибка получения боксов по категории:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка отримання боксів по категорії'
+    });
+  }
+};
+
+// ========== ОБНОВИТЬ РЕЙТИНГ БОКСА ==========
+exports.updateProductRating = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({
         success: false,
-        message: messages[0] || 'Ошибка валидации данных'
+        message: 'Рейтинг повинен бути від 1 до 5'
       });
     }
 
-    res.status(500).json({ 
-      success: false,
-      message: 'Ошибка обновления товара' 
-    });
-  }
-};
+    console.log(`⭐ Обновление рейтинга бокса ${id}: ${rating}`);
 
-// @desc    Удалить товар
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
-const deleteProduct = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
+    const updatedProduct = await Product.updateRating(id, Number(rating));
 
-    if (!product) {
-      return res.status(404).json({ 
+    if (!updatedProduct) {
+      return res.status(404).json({
         success: false,
-        message: 'Товар не найден' 
+        message: 'Бокс не знайдено'
       });
     }
-
-    // Мягкое удаление - просто делаем недоступным
-    product.availability.isAvailable = false;
-    await product.save();
 
     res.status(200).json({
       success: true,
-      message: 'Товар удален успешно'
+      message: 'Рейтинг оновлено',
+      rating: updatedProduct.rating
     });
+
   } catch (error) {
-    console.error('Ошибка удаления товара:', error);
-    res.status(500).json({ 
+    console.error('❌ Ошибка обновления рейтинга:', error.message);
+    res.status(500).json({
       success: false,
-      message: 'Ошибка удаления товара' 
+      message: 'Помилка оновлення рейтингу'
     });
   }
 };
 
-// @desc    Получить категории и их количество
-// @route   GET /api/products/categories
-// @access  Public
-const getCategories = async (req, res) => {
+// ========== ПОЛУЧИТЬ СТАТИСТИКУ БОКСОВ ==========
+exports.getProductsStats = async (req, res) => {
   try {
-    const pipeline = [
-      {
-        $match: { 'availability.isAvailable': true }
-      },
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-          subcategories: { $addToSet: '$subcategory' }
-        }
-      },
-      {
-        $project: {
-          category: '$_id',
-          count: 1,
-          subcategories: {
-            $filter: {
-              input: '$subcategories',
-              cond: { $ne: ['$$this', null] }
-            }
-          }
-        }
-      },
-      { $sort: { count: -1 } }
-    ];
+    console.log('📊 Запрос статистики боксов');
 
-    const categories = await Product.aggregate(pipeline);
-    
+    const stats = await Product.getStats();
+
     res.status(200).json({
       success: true,
-      categories
+      stats
     });
+
   } catch (error) {
-    console.error('Ошибка получения категорий:', error);
-    res.status(500).json({ 
+    console.error('❌ Ошибка получения статистики:', error.message);
+    res.status(500).json({
       success: false,
-      message: 'Ошибка получения категорий' 
+      message: 'Помилка отримання статистики'
     });
   }
 };
 
-// @desc    Добавить отзыв к товару
-// @route   POST /api/products/:id/reviews
-// @access  Private
-const addReview = async (req, res) => {
+// ========== АДМИНИСТРАТИВНЫЕ ФУНКЦИИ ==========
+
+// Создать новый бокс (только для админов)
+exports.createProduct = async (req, res) => {
   try {
-    const { rating, comment, images } = req.body;
-    const productId = req.params.id;
-    const userId = req.user.id;
+    console.log('➕ Создание нового ароматического бокса');
 
-    // Проверка существования товара
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'Товар не найден' 
-      });
-    }
+    const newProduct = await Product.create(req.body);
 
-    // Проверка, не оставлял ли пользователь уже отзыв
-    const existingReview = product.reviews.find(
-      review => review.user.toString() === userId
-    );
-
-    if (existingReview) {
-      return res.status(400).json({ 
-        success: false,
-        message: 'Вы уже оставили отзыв на этот товар' 
-      });
-    }
-
-    // Добавление отзыва
-    await product.addReview(userId, rating, comment, images);
-
-    const updatedProduct = await Product.findById(productId)
-      .populate('reviews.user', 'name avatar')
-      .select('reviews ratings');
+    console.log(`✅ Создан новый бокс: ${newProduct.name}`);
 
     res.status(201).json({
       success: true,
-      message: 'Отзыв добавлен успешно',
-      reviews: updatedProduct.reviews,
-      ratings: updatedProduct.ratings
+      message: 'Ароматичний бокс створено',
+      product: newProduct
     });
+
   } catch (error) {
-    console.error('Ошибка добавления отзыва:', error);
-    res.status(500).json({ 
+    console.error('❌ Ошибка создания бокса:', error.message);
+    res.status(400).json({
       success: false,
-      message: 'Ошибка добавления отзыва' 
+      message: error.message
     });
   }
 };
 
-// @desc    Получить популярные товары
-// @route   GET /api/products/popular
-// @access  Public
-const getPopularProducts = async (req, res) => {
+// Обновить бокс (только для админов)
+exports.updateProduct = async (req, res) => {
   try {
-    const { limit = 8 } = req.query;
+    const { id } = req.params;
+    console.log(`✏️ Обновление бокса ID: ${id}`);
 
-    const products = await Product.find({
-      'availability.isAvailable': true
-    })
-    .select('name price images.main ratings sales.totalSold slug')
-    .sort({ 'sales.totalSold': -1, 'ratings.average': -1 })
-    .limit(Number(limit))
-    .lean();
+    const sanitizedData = Product.sanitizeUpdateData(req.body);
+    const updatedProduct = await Product.update(id, sanitizedData);
 
-    res.status(200).json({
-      success: true,
-      products
-    });
-  } catch (error) {
-    console.error('Ошибка получения популярных товаров:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Ошибка получения популярных товаров' 
-    });
-  }
-};
-
-// @desc    Получить рекомендуемые товары
-// @route   GET /api/products/recommended
-// @access  Public/Private
-const getRecommendedProducts = async (req, res) => {
-  try {
-    const { limit = 6 } = req.query;
-    let products;
-
-    if (req.user) {
-      // Персонализированные рекомендации для авторизованных пользователей
-      const user = await User.findById(req.user.id).populate('wishlist orderHistory');
-      
-      // Логика рекомендаций на основе истории покупок и списка желаний
-      // Здесь можно добавить более сложную логику ML
-      
-      products = await Product.find({
-        'availability.isAvailable': true,
-        _id: { $nin: user.wishlist }
-      })
-      .select('name price images.main ratings slug')
-      .sort({ featured: -1, 'ratings.average': -1 })
-      .limit(Number(limit))
-      .lean();
-    } else {
-      // Общие рекомендации для неавторизованных пользователей
-      products = await Product.find({
-        'availability.isAvailable': true,
-        $or: [
-          { featured: true },
-          { trending: true },
-          { bestSeller: true }
-        ]
-      })
-      .select('name price images.main ratings slug')
-      .sort({ 'ratings.average': -1 })
-      .limit(Number(limit))
-      .lean();
-    }
-
-    res.status(200).json({
-      success: true,
-      products
-    });
-  } catch (error) {
-    console.error('Ошибка получения рекомендаций:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Ошибка получения рекомендаций' 
-    });
-  }
-};
-
-// @desc    Поиск товаров с автодополнением
-// @route   GET /api/products/search/suggestions
-// @access  Public
-const getSearchSuggestions = async (req, res) => {
-  try {
-    const { query, limit = 5 } = req.query;
-
-    if (!query || query.length < 2) {
-      return res.status(400).json({ 
+    if (!updatedProduct) {
+      return res.status(404).json({
         success: false,
-        message: 'Запрос должен содержать минимум 2 символа' 
+        message: 'Бокс не знайдено'
       });
     }
 
-    const suggestions = await Product.find({
-      'availability.isAvailable': true,
-      $or: [
-        { name: { $regex: query, $options: 'i' } },
-        { 'description.short': { $regex: query, $options: 'i' } },
-        { tags: { $regex: query, $options: 'i' } }
-      ]
-    })
-    .select('name slug images.thumbnail price.current')
-    .limit(Number(limit))
-    .lean();
+    console.log(`✅ Обновлен бокс: ${updatedProduct.name}`);
 
     res.status(200).json({
       success: true,
-      suggestions
+      message: 'Бокс оновлено',
+      product: updatedProduct
     });
+
   } catch (error) {
-    console.error('Ошибка поиска предложений:', error);
-    res.status(500).json({ 
+    console.error('❌ Ошибка обновления бокса:', error.message);
+    res.status(400).json({
       success: false,
-      message: 'Ошибка поиска' 
+      message: error.message
     });
   }
 };
 
-module.exports = {
-  getProducts,
-  getProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getCategories,
-  addReview,
-  getPopularProducts,
-  getRecommendedProducts,
-  getSearchSuggestions
+// Удалить бокс (только для админов)
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🗑️ Удаление бокса ID: ${id}`);
+
+    const deletedProduct = await Product.delete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Бокс не знайдено'
+      });
+    }
+
+    console.log(`✅ Удален бокс: ${deletedProduct.name}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Бокс видалено'
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка удаления бокса:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Помилка видалення бокса'
+    });
+  }
 };

@@ -122,7 +122,7 @@ const login = async (req, res) => {
         message: 'Неверные учетные данные' 
       });
     }
-
+ 
     // Проверка активности аккаунта
     if (!user.isActive) {
       return res.status(401).json({ 

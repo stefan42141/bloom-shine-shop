@@ -16,7 +16,7 @@ const router = express.Router();
 router.post('/', authenticate, createOrder);
 router.get('/my-orders', authenticate, getUserOrders);
 router.get('/:id', authenticate, getOrderById);
-router.patch('/:id/cancel', authenticate, cancelOrder);
+router.patch('/:id/cancel', authenticate, cancelOrder); 
 router.post('/:id/feedback', authenticate, addOrderFeedback);
 
 // Административные маршруты (только для админов)

@@ -16,7 +16,7 @@ const createOrder = async (req, res) => {
       flags,
       analytics
     } = req.body;
-
+ 
     // Валидация обязательных полей
     if (!items || items.length === 0) {
       return res.status(400).json({

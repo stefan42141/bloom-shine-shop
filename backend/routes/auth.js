@@ -16,7 +16,7 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
-
+ 
 // Приватные маршруты (требуют аутентификации)
 router.get('/profile', authenticate, getProfile);
 router.put('/profile', authenticate, updateProfile);
