@@ -252,7 +252,6 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  -webkit-line-clamp: 2;
 }
 
 /* Описание */
@@ -263,7 +262,6 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  -webkit-line-clamp: 3;
   margin-bottom: var(--space-md);
   flex: 1;
 }

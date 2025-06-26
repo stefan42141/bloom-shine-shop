@@ -175,42 +175,6 @@ const Footer = () => {
               </div>
             </div>
           </div>
-
-          {/* ПОДПИСКА НА РАССЫЛКУ */}
-          <div className="footer-newsletter">
-            <div className="newsletter-content">
-              <h3>🌙 Ексклюзивні пропозиції</h3>
-              <p className="newsletter-description">
-                Підпишіться на розсилку та отримайте знижку 15% на перше замовлення. 
-                Дізнавайтеся першими про нові колекції та спеціальні акції.
-              </p>
-
-              <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-                <input 
-                  type="email"
-                  placeholder="Ваша електронна пошта"
-                  className="newsletter-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <button 
-                  type="submit" 
-                  className="newsletter-button"
-                  disabled={isSubscribed}
-                >
-                  {isSubscribed ? '✓ Готово!' : '🌙 Підписатися'}
-                </button>
-              </form>
-
-              <ul className="newsletter-benefits">
-                <li className="newsletter-benefit">Ексклюзивні знижки</li>
-                <li className="newsletter-benefit">Нові колекції першими</li>
-                <li className="newsletter-benefit">Ароматичні поради</li>
-                <li className="newsletter-benefit">Спеціальні акції</li>
-              </ul>
-            </div>
-          </div>
         </div>
 
         {/* НИЖНЯЯ ЧАСТЬ */}

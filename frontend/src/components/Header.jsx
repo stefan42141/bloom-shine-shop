@@ -36,12 +36,10 @@ const Header = ({ cartCount = 0, isAuthenticated = false, onLogout }) => {
     }
   };
 
+  // Убираем ненужные пункты меню
   const navItems = [
     { path: '/', label: '🏠 Головна', exact: true },
-    { path: '/catalog', label: '🌙 Каталог' },
-    { path: '/premium', label: '💎 Преміум' },
-    { path: '/about', label: '✨ Про нас' },
-    { path: '/contact', label: '📞 Контакти' }
+    { path: '/catalog', label: '🌙 Каталог' }
   ];
 
   const isActive = (path, exact = false) => {

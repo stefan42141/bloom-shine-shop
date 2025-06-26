@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/pages/Product.css';
 
+// Вынесем luxurySizes за пределы компонента, чтобы избежать пересоздания
+const LUXURY_SIZES = [
+  { id: 'small', name: 'Міні', description: 'Елегантна мініатюра', price: 0, icon: '🌸' },
+  { id: 'medium', name: 'Стандарт', description: 'Класичний розмір', price: 0, icon: '🌺' },
+  { id: 'large', name: 'Преміум', description: 'Розкішна композиція', price: 1000, icon: '👑' },
+  { id: 'xl', name: 'Люкс', description: 'Грандіозна розкіш', price: 2500, icon: '💎' }
+];
+
 const Product = ({ onAddToCart }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,14 +21,6 @@ const Product = ({ onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-
-  // Премиальные размеры
-  const luxurySizes = [
-    { id: 'small', name: 'Міні', description: 'Елегантна мініатюра', price: 0, icon: '🌸' },
-    { id: 'medium', name: 'Стандарт', description: 'Класичний розмір', price: 0, icon: '🌺' },
-    { id: 'large', name: 'Преміум', description: 'Розкішна композиція', price: 1000, icon: '👑' },
-    { id: 'xl', name: 'Люкс', description: 'Грандіозна розкіш', price: 2500, icon: '💎' }
-  ];
 
   // Мок данные товара
   const getProductById = async (productId) => {
@@ -112,12 +112,13 @@ const Product = ({ onAddToCart }) => {
     };
   };
 
+  // Теперь useEffect без проблем с зависимостями
   useEffect(() => {
     const loadProduct = async () => {
       try {
         const productData = await getProductById(id);
         setProduct(productData);
-        setSelectedSize(luxurySizes[1].id); // По умолчанию средний размер
+        setSelectedSize(LUXURY_SIZES[1].id); // По умолчанию средний размер
       } catch (error) {
         console.error('Помилка завантаження товару:', error);
         navigate('/catalog');
@@ -127,7 +128,7 @@ const Product = ({ onAddToCart }) => {
     };
     
     loadProduct();
-  }, [id, navigate]);
+  }, [id, navigate]); // Теперь все зависимости указаны правильно
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
@@ -140,7 +141,7 @@ const Product = ({ onAddToCart }) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      const selectedSizeInfo = luxurySizes.find(size => size.id === selectedSize);
+      const selectedSizeInfo = LUXURY_SIZES.find(size => size.id === selectedSize);
       const finalPrice = product.price + selectedSizeInfo.price;
       
       const cartItem = {
@@ -161,7 +162,7 @@ const Product = ({ onAddToCart }) => {
   const getCurrentPrice = () => {
     if (!product || !selectedSize) return product?.price || 0;
     
-    const selectedSizeInfo = luxurySizes.find(size => size.id === selectedSize);
+    const selectedSizeInfo = LUXURY_SIZES.find(size => size.id === selectedSize);
     return product.price + (selectedSizeInfo?.price || 0);
   };
 
@@ -293,7 +294,7 @@ const Product = ({ onAddToCart }) => {
                   Оберіть розмір
                 </h3>
                 <div className="size-options">
-                  {luxurySizes.map(size => (
+                  {LUXURY_SIZES.map(size => (
                     <label 
                       key={size.id}
                       className={`size-option ${selectedSize === size.id ? 'selected' : ''}`}

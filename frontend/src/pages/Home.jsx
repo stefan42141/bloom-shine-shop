@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ProductCard from '../components/ProductCard';
 import apiService from '../services/api';
 import '../styles/pages/Home.css';
 
